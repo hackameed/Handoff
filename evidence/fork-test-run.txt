@@ -1,0 +1,30 @@
+No files changed, compilation skipped
+
+Ran 9 tests for test/Handoff.t.sol:HandoffTest
+[PASS] test_FlashFeeRounding() (gas: 47113)
+Logs:
+  pool fee bps: 1
+  fee on 2500 MUSD: 250025002500250026
+
+[PASS] test_Fork_RealMigration() (gas: 2453870)
+Logs:
+  A collateral (wei): 100000000000000000
+  A debt (MUSD 1e18): 2202000000000000000000
+  A MUSD received: 2000000000000000000000
+  quoted collateral: 100000000000000000
+  payoff: 2002000000000000000000
+  principal: 2013010000000000000000
+  flashFee: 201321132113211322
+  B debt: 2402200000000000000000
+  B MUSD received: 0
+
+[PASS] test_Revert_DeadlineTooFar() (gas: 59517)
+[PASS] test_Revert_DestinationOccupied() (gas: 1804800)
+[PASS] test_Revert_DrawTooSmall() (gas: 1070117)
+[PASS] test_Revert_DuplicateWallets() (gas: 59427)
+[PASS] test_Revert_NativeFromUnexpectedSource() (gas: 39166)
+[PASS] test_Revert_QuoteExpired() (gas: 59120)
+[PASS] test_Revert_SourceNotActive() (gas: 81721)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 17.14s (29.18s CPU time)
+
+Ran 1 test suite in 17.14s (17.14s CPU time): 9 tests passed, 0 failed, 0 skipped (9 total tests)

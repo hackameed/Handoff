@@ -1,0 +1,8 @@
+cache/
+broadcast/
+out/
+.env
+lib/
+
+# disposable testnet deployer
+.deploy/

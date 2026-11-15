@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Handoff — Verify the deployment</title>
+<style>
+  :root{
+    --bg:#111210; --panel:#191b17; --stroke:#34372d; --ink:#e8e6df;
+    --ink-dim:#9a9c92; --ink-faint:#6d7067; --amber:#efb86b; --amber-dim:#8a6a3c;
+    --green:#a8d5a2; --green-dim:#3d5a3a; --red:#e08b7f;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+       font-size:15px;line-height:1.55;font-variant-numeric:tabular-nums}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:clamp(26px,5vw,36px);letter-spacing:-.03em;margin:0 0 8px;font-weight:600}
+  .sub{color:var(--ink-dim);margin:0 0 30px;font-size:15px;max-width:60ch}
+  .panel{background:var(--panel);border:1px solid var(--stroke);border-radius:10px;padding:22px;margin-bottom:16px}
+  h2{font-size:15px;margin:0 0 14px;letter-spacing:-.01em}
+  .row{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #24261f;font-size:13.5px;align-items:baseline}
+  .row:last-child{border-bottom:0}
+  .row .k{color:var(--ink-dim);flex:0 0 auto}
+  .row .v{font-family:var(--mono);font-size:12.5px;text-align:right;word-break:break-all}
+  .ok{color:var(--green)} .bad{color:var(--red)} .pend{color:var(--ink-faint)}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+         border-radius:999px;padding:6px 14px;border:1px solid var(--stroke)}
+  .badge.ok{border-color:var(--green-dim);background:#12160f}
+  .badge.bad{border-color:#5c332e;background:#1a1211}
+  .badge.pend{border-color:var(--stroke);background:#15170f}
+  .notice{border-left:3px solid var(--amber);background:#17140e;border-radius:7px;
+          padding:12px 15px;font-size:13px;color:var(--ink-dim);margin-bottom:16px}
+  code{font-family:var(--mono);font-size:12px;color:var(--amber);background:#1e211a;padding:1.5px 5px;border-radius:4px}
+  a{color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber-dim)}
+  .mono{font-family:var(--mono)}
+  ol{padding-left:20px;color:var(--ink-dim);font-size:13.5px}
+  li{margin-bottom:9px}
+  .spin{display:inline-block;width:11px;height:11px;border:2px solid var(--stroke);
+        border-top-color:var(--amber);border-radius:50%;animation:s .7s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Verify the deployment</h1>
+  <p class="sub">Every claim on the submission page, checked live against Mezo Testnet from your browser. No trust in the authors required.</p>
+
+  <div id="status" class="panel" style="text-align:center">
+    <span class="badge pend"><span class="spin"></span> Reading chain…</span>
+  </div>
+
+  <div class="panel">
+    <h2>Contract</h2>
+    <div class="row"><span class="k">Network</span><span class="v">Mezo Testnet · 31611</span></div>
+    <div class="row"><span class="k">Address</span><span class="v" id="addr">—</span></div>
+    <div class="row"><span class="k">Deploy tx</span><span class="v" id="tx">—</span></div>
+    <div class="row"><span class="k">Runtime size</span><span class="v" id="size">—</span></div>
+    <div class="row"><span class="k">Explorer</span><span class="v"><a id="expl" href="#" target="_blank" rel="noopener">open ↗</a></span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Bytecode integrity</h2>
+    <div class="notice">
+      The runtime bytecode hash read from chain must equal the hash produced by
+      compiling the published source. This is a stronger check than a "verified"
+      badge: it proves the deployed code is byte-for-byte the code that was tested.
+    </div>
+    <div class="row"><span class="k">Expected (build)</span><span class="v mono">0xbaec09e5…24b546</span></div>
+    <div class="row"><span class="k">Actual (chain)</span><span class="v mono" id="codehash">—</span></div>
+    <div class="row"><span class="k">Match</span><span class="v" id="hashmatch">—</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Immutables</h2>
+    <div id="imms"><span class="pend">Reading…</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Live protocol reads</h2>
+    <div class="row"><span class="k">Tigris pool fee (bps)</span><span class="v" id="feebps">—</span></div>
+    <div class="row"><span class="k">Flash fee on 2,500 MUSD</span><span class="v" id="feebig">—</span></div>
+    <div class="row"><span class="k">BTC price (Mezo feed)</span><span class="v" id="price">—</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>What this does and does not prove</h2>
+    <ol>
+      <li><strong>Proves:</strong> the deployed bytecode is identical to the published, tested build.</li>
+      <li><strong>Proves:</strong> the contract is bound to the real Mezo protocol addresses and reads the live Tigris fee.</li>
+      <li><strong>Does not prove:</strong> that a migration has been mined. The nine fork tests are <em>simulations</em> executed against live chain state — materially stronger than mocks, materially weaker than a confirmed transaction.</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const CFG = {
+  RPC: "https://rpc.test.mezo.org",
+  ROUTER: "0x2d2c1B42a75Cf360Ba3A70Bd6ad3a3C619069762",
+  TX: "0xd745ce35e5baa0abace396a377eddfd3ca0c83b43de13c45e38d0d8fc7c400bd",
+  EXPECTED_CODEHASH: "0xbaec09e54ddfd78eee5a79e41558d731b12a9ae54717b1627bd07c792624b546",
+  EXPECTED_SIZE: 6169,
+  EXPLORER: "https://explorer.test.mezo.org"
+};
+
+const EXPECTED = {
+  EXPECTED_CHAIN_ID: "31611",
+  MUSD: "0x118917a40faf1cd7a13db0ef56c86de7973ac503",
+  BORROWER_OPERATIONS_SIGNATURES: "0xd757e3646af370b15f32eb557f0f8380df7d639e",
+  TROVE_MANAGER: "0xe47c80e8c23f6b4a1ae41c34837a0599d5d16bb0",
+  ACTIVE_POOL: "0x143a063f62340da3a8bea1c5642d18c6d0f7ff51",
+  POOL: "0x525f049a4494da0a6c87e3c4df55f9929765dc3e",
+  POOL_FACTORY: "0x4947243cc818b627a5d06d14c4ece7398a23ce1a"
+};
+
+const $ = (id) => document.getElementById(id);
+
+async function rpc(method, params) {
+  const r = await fetch(CFG.RPC, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
+  });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || "rpc error");
+  return j.result;
+}
+
+async function call(to, data) {
+  const res = await rpc("eth_call", [{ to, data }, "latest"]);
+  return res;
+}
+
+function status(ok, text) {
+  $("status").innerHTML =
+    '<span class="badge ' + (ok ? "ok" : "bad") + '">' +
+    (ok ? "✓ " : "✕ ") + text + "</span>";
+}
+
+/* --- keccak-256, pure JS, needed because there is no dependency budget --- */
+function keccak256(bytes) {
+  const RC = [0x0000000000000001n,0x0000000000008082n,0x800000000000808An,0x8000000080008000n,
+    0x000000000000808Bn,0x0000000080000001n,0x8000000080008081n,0x8000000000008009n,
+    0x000000000000008An,0x0000000000000088n,0x0000000080008009n,0x000000008000000An,
+    0x000000008000808Bn,0x800000000000008Bn,0x8000000000008089n,0x8000000000008003n,
+    0x8000000000008002n,0x8000000000000080n,0x000000000000800An,0x800000008000000An,
+    0x8000000080008081n,0x8000000000008080n,0x0000000080000001n,0x8000000080008008n];
+  const R = [[0,36,3,41,18],[1,44,10,45,2],[62,6,43,15,61],[28,55,25,21,56],[27,20,39,8,14]];
+  const M = (1n << 64n) - 1n;
+  const rol = (x, n) => n === 0 ? x : (((x << BigInt(n)) | (x >> BigInt(64 - n))) & M);
+  const A = Array.from({length: 5}, () => new Array(5).fill(0n));
+  const rate = 136;
+  const d = Array.from(bytes);
+  d.push(0x01);
+  while (d.length % rate !== 0) d.push(0);
+  d[d.length - 1] |= 0x80;
+
+  for (let off = 0; off < d.length; off += rate) {
+    for (let i = 0; i < rate / 8; i++) {
+      let lane = 0n;
+      for (let b = 7; b >= 0; b--) lane = (lane << 8n) | BigInt(d[off + i * 8 + b]);
+      A[i % 5][Math.floor(i / 5)] ^= lane;
+    }
+    for (let rnd = 0; rnd < 24; rnd++) {
+      const C = [], D = [];
+      for (let x = 0; x < 5; x++) C[x] = A[x][0] ^ A[x][1] ^ A[x][2] ^ A[x][3] ^ A[x][4];
+      for (let x = 0; x < 5; x++) D[x] = C[(x + 4) % 5] ^ rol(C[(x + 1) % 5], 1);
+      for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++) A[x][y] ^= D[x];
+      const B = Array.from({length: 5}, () => new Array(5).fill(0n));
+      for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++)
+        B[y][(2 * x + 3 * y) % 5] = rol(A[x][y], R[x][y]);
+      for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++)
+        A[x][y] = B[x][y] ^ ((~B[(x + 1) % 5][y] & M) & B[(x + 2) % 5][y]);
+      A[0][0] ^= RC[rnd];
+    }
+  }
+  const out = new Uint8Array(32);
+  for (let i = 0; i < 4; i++) {
+    let lane = A[i % 5][Math.floor(i / 5)];
+    for (let b = 0; b < 8; b++) { out[i * 8 + b] = Number(lane & 0xffn); lane >>= 8n; }
+  }
+  return out;
+}
+const toHex = (arr) => "0x" + Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+const sel = (sig) => toHex(keccak256(new TextEncoder().encode(sig))).slice(0, 10);
+
+async function main() {
+  $("addr").textContent = CFG.ROUTER;
+  $("tx").textContent = CFG.TX;
+  $("expl").href = CFG.EXPLORER + "/address/" + CFG.ROUTER;
+
+  try {
+    // --- code presence + hash ---
+    const code = await rpc("eth_getCode", [CFG.ROUTER, "latest"]);
+    if (!code || code === "0x") {
+      status(false, "No contract code at this address on chain 31611");
+      return;
+    }
+    const bytes = [];
+    for (let i = 2; i < code.length; i += 2) bytes.push(parseInt(code.slice(i, i + 2), 16));
+    const size = bytes.length;
+    $("size").textContent = size + " bytes" + (size === CFG.EXPECTED_SIZE ? " ✓" : "");
+
+    const actualHash = toHex(keccak256(bytes));
+    $("codehash").textContent = actualHash.slice(0, 10) + "…" + actualHash.slice(-6);
+    const match = actualHash === CFG.EXPECTED_CODEHASH;
+    $("hashmatch").innerHTML = match
+      ? '<span class="ok">✓ identical to build</span>'
+      : '<span class="bad">✕ differs from build</span>';
+
+    // --- immutables ---
+    const sigs = {
+      EXPECTED_CHAIN_ID: "EXPECTED_CHAIN_ID()",
+      MUSD: "MUSD()",
+      BORROWER_OPERATIONS_SIGNATURES: "BORROWER_OPERATIONS_SIGNATURES()",
+      TROVE_MANAGER: "TROVE_MANAGER()",
+      ACTIVE_POOL: "ACTIVE_POOL()",
+      POOL: "POOL()",
+      POOL_FACTORY: "POOL_FACTORY()"
+    };
+    let immHtml = "", allImmOk = true;
+    for (const [name, sig] of Object.entries(sigs)) {
+      const res = await call(CFG.ROUTER, sel(sig));
+      const raw = res.slice(2);
+      let val;
+      if (name === "EXPECTED_CHAIN_ID") {
+        val = BigInt("0x" + raw).toString();
+      } else {
+        val = "0x" + raw.slice(24).toLowerCase();
+      }
+      const ok = val.toLowerCase() === EXPECTED[name].toLowerCase();
+      if (!ok) allImmOk = false;
+      immHtml += '<div class="row"><span class="k">' + name + "</span>" +
+        '<span class="v ' + (ok ? "ok" : "bad") + '">' + (ok ? "✓ " : "✕ ") +
+        (name === "EXPECTED_CHAIN_ID" ? val : val.slice(0, 10) + "…" + val.slice(-4)) +
+        "</span></div>";
+    }
+    $("imms").innerHTML = immHtml;
+
+    // --- live reads ---
+    const feeBps = BigInt(await call(CFG.ROUTER, sel("poolFeeBps()")));
+    $("feebps").textContent = feeBps.toString();
+
+    const big = BigInt(await call(CFG.ROUTER, sel("flashFeeFor(uint256)") +
+      (2500n * 10n ** 18n).toString(16).padStart(64, "0")));
+    $("feebig").textContent = (Number(big) / 1e18).toFixed(6) + " MUSD";
+
+    const price = BigInt(await call("0x86bCF0841622a5dAC14A313a15f96A95421b9366", sel("fetchPrice()")));
+    $("price").textContent = "$" + Number(price / 10n ** 18n).toLocaleString("en-US");
+
+    if (match && allImmOk) {
+      status(true, "Deployed bytecode matches the published build");
+    } else if (!match) {
+      status(false, "Bytecode does not match the build");
+    } else {
+      status(false, "Immutables do not match the published configuration");
+    }
+  } catch (e) {
+    status(false, "Verification failed: " + e.message);
+  }
+}
+
+main();
+</script>
+</body>
+</html>

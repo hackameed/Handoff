@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Handoff — Move your Mezo loan</title>
+<meta name="description" content="Switch wallets while keeping the same Bitcoin collateral. Move a Mezo MUSD loan in one transaction." />
+<link rel="icon" href="assets/handoff-icon.png" />
+<style>
+:root{
+  color-scheme: dark;
+  font-family:"Geist","Geist Variable",system-ui,-apple-system,"Segoe UI",Inter,Roboto,sans-serif;
+  --bg:#0d0c0a;
+  --panel:#16140f;
+  --panel-2:#1b1913;
+  --well:#12110d;
+  --stroke:#2b281f;
+  --stroke-2:#3a3628;
+  --ink:#f4f0e6;
+  --muted:#9c9686;
+  --faint:#6d6858;
+  --amber:#efb86b;
+  --amber-soft:#c99a58;
+  --amber-deep:#8a6a3c;
+  --green:#93c48c;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --gutter:clamp(18px,4.5vw,56px);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+h1,h2,h3,p,ol,dl,dd{margin:0}
+button,input{font:inherit}
+button{cursor:pointer;color:inherit}
+button:disabled{cursor:default}
+a{color:inherit}
+code{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:3px}
+#step-title:focus,#workspace:focus{outline:none}
+
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.skip-link{position:fixed;z-index:9;inset:10px auto auto 10px;padding:10px 15px;background:var(--amber);color:#1a1408;border-radius:6px;font-weight:650;transform:translateY(-180%);text-decoration:none}
+.skip-link:focus{transform:translateY(0)}
+
+/* ---------- header ---------- */
+.topbar{border-bottom:1px solid var(--stroke)}
+.top-inner,.workspace{width:min(1180px,calc(100% - 2*var(--gutter)));margin-inline:auto}
+.top-inner,.top-actions,.brand,.mode-control,.wallet-button{display:flex;align-items:center}
+.top-inner{min-height:72px;justify-content:space-between;gap:14px}
+.brand{padding:0;border:0;gap:12px;background:none;font-size:23px;line-height:1;font-weight:800;letter-spacing:-.045em}
+.brand img{flex:none;border-radius:7px}
+.brand .dot{color:var(--amber)}
+.top-actions{gap:16px}
+.net-label{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.net-label i{width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.mode-control{border:1px solid var(--stroke-2);border-radius:7px;overflow:clip;gap:2px;padding:3px;background:#100f0c}
+.mode-control button{min-height:30px;padding:0 15px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:13px;font-weight:560}
+.mode-control button[aria-pressed="true"]{color:var(--ink);background:#2c2920;font-weight:650}
+.mode-control button:hover:not(:disabled):not([aria-pressed="true"]){color:var(--ink)}
+.wallet-button{gap:8px}
+.wallet-indicator{width:7px;height:7px;border:1px solid var(--faint);border-radius:50%}
+.wallet-indicator.connected{border-color:var(--green);background:var(--green)}
+
+/* ---------- intro ---------- */
+.workspace{padding:52px 0 30px}
+.intro{margin-bottom:34px}
+.intro h1{font-size:clamp(38px,7vw,74px);font-weight:800;letter-spacing:-.045em;line-height:1.02}
+.intro h1 .dot{color:var(--amber)}
+.intro p{margin-top:14px;color:var(--muted);font-size:clamp(15px,1.8vw,17px)}
+
+/* ---------- progress ---------- */
+.steps{display:flex;align-items:center;gap:0;list-style:none;padding:0;margin:0 0 22px;border-bottom:1px solid var(--stroke);padding-bottom:20px}
+.steps li{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:13.5px;font-weight:520;flex:0 0 auto}
+.steps li + li::before{content:"";display:block;width:clamp(20px,7vw,86px);height:1px;background:var(--stroke-2);margin:0 16px 0 16px}
+.step-number{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--stroke-2);color:var(--faint);font:600 11px/1 var(--mono)}
+.steps li.current{color:var(--ink);font-weight:650}
+.steps li.current .step-number{border-color:var(--amber);color:var(--amber)}
+.steps li.complete{color:var(--muted)}
+.steps li.complete .step-number{border-color:var(--amber-deep);color:var(--amber)}
+
+/* ---------- layout ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,372px);gap:22px;align-items:start}
+.work-panel{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:30px 30px 28px;min-width:0}
+.step-heading{margin-bottom:24px}
+.step-heading h2{font-size:clamp(22px,2.4vw,28px);font-weight:700;letter-spacing:-.028em;line-height:1.15}
+.step-heading > p{margin-top:9px;font-size:14px;line-height:1.5;color:var(--muted);max-width:52ch}
+
+/* ---------- wallet tiles ---------- */
+.wallet-route{margin-bottom:20px}
+.wallet-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
+.route-wallet{display:grid;gap:7px;align-content:start;padding:16px 17px;border:1px solid var(--stroke-2);border-radius:11px;background:var(--well);min-width:0}
+.route-wallet:last-child{border-color:#4a3f28;background:#191509}
+.wallet-label{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11.5px;font-weight:560}
+.wallet-label .glyph{width:13px;height:11px;border:1.5px solid var(--faint);border-radius:2px;position:relative;flex:none}
+.wallet-label .glyph::after{content:"";position:absolute;right:-3px;top:2px;width:5px;height:5px;border:1.5px solid var(--faint);border-radius:1px;background:var(--well)}
+.route-wallet > code{font-size:clamp(14px,1.6vw,16px);font-weight:650;letter-spacing:-.01em;overflow-wrap:anywhere}
+.wallet-status{color:var(--faint);font-size:12px}
+.arrow-tile{display:grid;place-items:center;align-self:center}
+.arrow-tile span{display:grid;place-items:center;width:30px;height:30px;border-radius:7px;background:#3a3020;color:var(--amber);font-size:14px}
+.addresses{margin-top:12px}
+.addresses summary{cursor:pointer;font-size:12px;color:var(--faint);width:fit-content}
+.addresses summary:hover{color:var(--muted)}
+.addresses dl{margin-top:9px;padding:10px 13px;background:var(--well);border-radius:8px}
+.addresses dl > div{padding:4px 0}
+.addresses dt{font-size:11px;color:var(--faint);font-weight:600}
+.addresses dd{font-size:12px;line-height:1.55;overflow-wrap:anywhere;font-family:var(--mono)}
+
+.sample-note{display:flex;align-items:center;gap:8px;color:var(--faint);font-size:12.5px;margin-top:16px}
+.sample-note i{width:6px;height:6px;border-radius:50%;background:var(--amber);flex:none}
+
+/* ---------- buttons ---------- */
+.actions{margin-top:24px;display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px}
+.actions.between{justify-content:space-between}
+.action-group{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.button{display:inline-flex;justify-content:center;align-items:center;gap:10px;min-height:42px;padding:9px 17px;border:1px solid var(--stroke-2);border-radius:8px;background:transparent;color:var(--ink);font-size:13.5px;font-weight:620;text-decoration:none;transition:background-color .13s,border-color .13s,color .13s}
+.button.primary{background:var(--amber);border-color:var(--amber);color:#1a1408;font-weight:700}
+.button.primary:hover:not(:disabled){background:#f6c884;border-color:#f6c884}
+.button.secondary:hover:not(:disabled),.wallet-button:hover:not(:disabled){background:#221f18;border-color:var(--stroke-2)}
+.button:disabled{border-color:#262319;background:#171510;color:#5c574a}
+.button:disabled > span{color:inherit}
+.forward-arrow,.external-arrow{position:relative;display:inline-block;width:13px;height:8px;flex:none}
+.forward-arrow::before,.external-arrow::before{content:"";position:absolute;inset:50% 0 auto 0;border-top:1.5px solid currentColor}
+.forward-arrow::after,.external-arrow::after{content:"";position:absolute;right:0;top:calc(50% - 3px);width:5px;height:5px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:rotate(45deg)}
+.external-arrow{width:8px;transform:rotate(-45deg);margin-inline:2px}
+
+/* ---------- fields ---------- */
+.field + .field{margin-top:17px}
+.field-line{display:flex;align-items:stretch;gap:8px}
+.field-line input{flex:1 1 auto;min-width:0}
+label{display:block;margin-bottom:7px;font-size:12.5px;font-weight:620;color:var(--muted)}
+input{min-height:44px;width:100%;padding:10px 12px;border:1px solid var(--stroke-2);border-radius:8px;background:var(--well);color:var(--ink);font:400 13px/1.3 var(--mono)}
+input::placeholder{color:var(--faint)}
+.subtle{color:var(--faint);font-size:12px;line-height:1.5}
+.field .subtle{margin-top:7px}
+
+/* ---------- sidebar ---------- */
+.sidebar{min-width:0;display:grid;gap:14px}
+.loan-panel{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:20px 20px 18px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.panel-head h2{font-size:16px;font-weight:680;letter-spacing:-.015em}
+.chip{font-size:11px;font-weight:620;color:var(--amber);border:1px solid var(--amber-deep);border-radius:5px;padding:3px 8px}
+.balance{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1px solid #4a3f28;border-radius:11px;background:#191509}
+.coin{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--amber);color:#1a1408;font-size:17px;font-weight:700;flex:none}
+.balance .meta{display:grid;gap:2px;min-width:0}
+.balance .meta span{color:var(--muted);font-size:11.5px}
+.balance strong{font-size:clamp(24px,2.6vw,29px);font-weight:700;letter-spacing:-.035em;line-height:1.1}
+.balance .unit{color:var(--faint);font-size:11px;font-weight:600;margin-left:3px;letter-spacing:0}
+.loan-data{margin-top:6px}
+.loan-data > div,.data-list > div{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 2px;border-bottom:1px solid var(--stroke)}
+.loan-data > div:last-child,.data-list > div:last-child{border-bottom:0}
+.loan-data dt,.data-list dt{color:var(--muted);font-size:12.5px;line-height:1.35}
+.loan-data dd,.data-list dd{font-size:13.5px;font-weight:650;text-align:right;font-variant-numeric:tabular-nums}
+.loan-data .unit,.data-list .unit{color:var(--faint);font-size:10.5px;font-weight:600;margin-left:3px}
+.position-note{margin-top:12px;color:var(--faint);font-size:12px;line-height:1.5}
+.quote-block{margin-top:10px;padding-top:10px;border-top:1px solid var(--stroke);color:var(--faint);font-size:11.5px}
+
+.explainer{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:15px 18px}
+.explainer summary{cursor:pointer;font-size:13px;font-weight:620;list-style:none;display:flex;align-items:center;gap:9px}
+.explainer summary::-webkit-details-marker{display:none}
+.explainer summary::before{content:"▶";font-size:8px;color:var(--amber);transition:transform .15s}
+.explainer[open] summary::before{transform:rotate(90deg)}
+.explainer p{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.6}
+
+/* ---------- review ---------- */
+.mobile-collateral{display:none}
+.terms{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;margin-top:4px}
+.terms td,.terms th{padding:12px 10px;border-bottom:1px solid var(--stroke);vertical-align:baseline}
+.terms td,.terms thead th{text-align:right}
+.terms tr > :first-child{text-align:left;width:32%;padding-left:2px;color:var(--muted);font-size:12.5px}
+.terms tr > :last-child{width:34%;background:#1b1810}
+.terms thead th{font-size:11.5px;color:var(--faint);font-weight:600}
+.terms tbody th{font-weight:560;font-size:12.5px}
+.terms tbody td{font-weight:650}
+.terms .unit{color:var(--faint);font-size:10.5px;font-weight:600;margin-left:3px}
+.quote-details,.approval-section{margin-top:22px}
+.quote-details h3,.approval-head h3{font-size:13.5px;font-weight:660;margin-bottom:4px}
+.quote-details > p{margin-top:10px}
+.approval-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.quote-age{font:500 11px/1.3 var(--mono);color:var(--faint)}
+.quote-age.expired{color:#e08b7f}
+.approvals{border-top:1px solid var(--stroke)}
+.approval{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:62px;padding:9px 0;border-bottom:1px solid var(--stroke)}
+.approval-wallet{display:grid;grid-template-columns:auto auto;align-items:baseline;justify-content:start;gap:4px 9px}
+.approval-wallet code{font-size:11.5px;color:var(--muted)}
+.approval-wallet .wallet-status{grid-column:1/-1;color:var(--faint);font-size:11.5px}
+.approval .button{min-height:36px;min-width:58px;padding-inline:13px;font-size:12.5px}
+.signed{color:var(--green);font-size:12px;font-weight:650;white-space:nowrap}
+.notice,.step-heading>.notice{padding:11px 13px;border-left:2px solid var(--amber);background:#1a1710;color:var(--muted);font-size:12.5px;line-height:1.55;border-radius:0 8px 8px 0;overflow-wrap:anywhere}
+.notice.warning{border-left-color:#e08b7f;background:#1b1210;color:#e6b5ab}
+.step-heading>.notice{margin-top:13px}
+.notice + form{margin-top:13px}
+.receipt-data{background:var(--well);border-radius:10px;padding:2px 14px;margin-top:4px}
+.receipt-link,.text-link{color:var(--amber);font-size:13px;text-underline-offset:3px;overflow-wrap:anywhere}
+.receipt-link-row{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:16px}
+
+/* ---------- footer ---------- */
+footer{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px 20px;padding:20px 0 0;margin-top:30px;border-top:1px solid var(--stroke);color:var(--faint);font-size:12.5px}
+.footer-links{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 22px}
+.footer-links a,.link-button{text-decoration:none;color:var(--muted)}
+.link-button{padding:0;border:0;background:none;font-size:inherit}
+.footer-links a:hover,.link-button:hover:not(:disabled){color:var(--amber)}
+.link-button:disabled{color:var(--faint)}
+
+/* ---------- dialog ---------- */
+dialog{max-height:calc(100% - 32px);width:min(440px,calc(100% - 32px));margin:auto;padding:24px;border:1px solid var(--stroke-2);border-radius:14px;background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:#0000 0.72}
+.dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dialog-heading h2{font-size:20px;font-weight:700;letter-spacing:-.025em}
+.dialog-heading .icon-button{min-height:36px;min-width:36px;padding:4px;font-size:17px}
+dialog p{color:var(--muted);font-size:13px;line-height:1.55;margin:12px 0 16px}
+dialog form button[type="submit"]{margin-top:9px}
+.separator{margin:18px 0;border-top:1px solid var(--stroke)}
+.dialog-status{margin:9px 0;color:var(--amber);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+
+/* ---------- responsive ---------- */
+@media (max-width:1000px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .sidebar{grid-template-columns:minmax(0,1fr)}
+  .intro{margin-bottom:26px}
+}
+@media (max-width:680px){
+  .top-inner{min-height:62px}
+  .brand{font-size:20px;gap:9px}
+  .brand img{width:27px;height:27px}
+  .net-label{display:none}
+  .mode-control button{min-height:32px;padding-inline:11px;font-size:12px}
+  .workspace{padding-top:30px}
+  .steps{margin-bottom:18px;padding-bottom:16px}
+  .steps li{font-size:12px;gap:7px}
+  .steps li + li::before{width:12px;margin-inline:9px}
+  .step-number{width:19px;height:19px;font-size:10px}
+  .work-panel{padding:20px 17px}
+  .wallet-pair{grid-template-columns:minmax(0,1fr)}
+  .arrow-tile{justify-self:start;padding-left:4px}
+  .arrow-tile span{transform:rotate(90deg)}
+  .button{min-height:44px}
+  .mobile-collateral{display:flex;align-items:baseline;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--stroke);color:var(--muted);font-size:12.5px}
+  .mobile-collateral strong{color:var(--ink)}
+  .terms tbody .unit{display:block;margin-top:2px}
+  .approval-wallet{grid-template-columns:auto;gap:3px}
+  .approval-wallet .wallet-status{grid-column:1}
+  .actions.between .action-group{flex:1 0 100%;justify-content:flex-start}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#workspace">Skip to loan transfer</a>
+<div id="app"></div>
+<div id="live-status" class="visually-hidden" role="status"></div>
+
+<dialog id="router-dialog" aria-labelledby="router-title">
+  <div class="dialog-heading">
+    <h2 id="router-title">Set up the router</h2>
+    <form method="dialog"><button class="button icon-button" aria-label="Close router settings">×</button></form>
+  </div>
+  <p>Handoff is deployed on Mezo Testnet. Use the verified address below, or deploy your own copy.</p>
+  <form id="router-form">
+    <label for="router-address">Existing Handoff router</label>
+    <input id="router-address" name="router" placeholder="0x…" autocomplete="off" spellcheck="false" />
+    <button class="button secondary" type="submit">Verify and use address</button>
+  </form>
+  <div class="separator"></div>
+  <button class="button primary" data-action="deploy-router" type="button">Deploy with connected wallet</button>
+  <p class="subtle" style="margin:10px 0 6px">Deployment uses test BTC for network fees. You can reuse the same router for future moves.</p>
+  <div id="router-status" class="dialog-status" role="status"></div>
+  <a class="text-link" href="https://faucet.test.mezo.org" target="_blank" rel="noopener noreferrer">Get test BTC <span class="external-arrow" aria-hidden="true"></span></a>
+</dialog>
+
+<script>
+"use strict";
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+const CONFIG = {
+  chainId: 31611,
+  chainHex: "0x7b7b",
+  rpc: "https://rpc.test.mezo.org",
+  explorer: "https://explorer.test.mezo.org",
+  router: "0x2d2c1B42a75Cf360Ba3A70Bd6ad3a3C619069762",
+  musd: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+  sigs: "0xD757e3646AF370b15f32EB557F0F8380Df7D639e",
+  troveManager: "0xE47c80e8c23f6B4A1aE41c34837a0599D5D16bb0",
+  pool: "0x525F049A4494dA0a6c87E3C4df55f9929765Dc3e",
+  gasReserve: 200n * 10n ** 18n,
+  domainName: "BorrowerOperationsSignatures",
+  domainVersion: "1"
+};
+const INTEREST_RATE_MANAGER = "0xD4D6c36A592A2c5e86035A6bca1d57747a567f37";
+
+const SEL = {
+  getTroveStatus: "0x21e37801",
+  getTroveColl: "0x480cd578",
+  getTroveDebt: "0xd66a2553",
+  getTroveInterestRate: "0x92b7659b",
+  interestRate: "0x7c3a00fd",
+  preview: "0x13ce19e3",
+  poolFeeBps: "0x37e1b65a",
+  moveLoan: "0xed74fbba",
+  getNonce: "0x2d0335ab"
+};
+
+/* Demo fixture — sample data, clearly labelled in the UI. */
+const sampleSource = "0x3cFb7d2A1e904c58B3fA6D14e0b7a9C2d8E41Ad2";
+const sampleDestination = "0xEbDd3c17A85f0296bE4a7C1d5F8039e6B2c73364";
+const sampleLoan = { collateral: 100000000000000000n, debt: 2702500000000000000000n, rate: 100n };
+const sampleQuote = {
+  loan: sampleLoan,
+  collateral: 100000000000000000n,
+  payoff: 2500500000000000000000n,
+  origination: 135125000000000000000n,
+  flashFee: 251321132113211322n,
+  newDebt: 2902500000000000000000n,
+  newRate: 100n,
+  change: 149000000000000000000n,
+  blockNumber: 16785123n,
+  deadline: 0
+};
+
+/* ==========================================================================
+   State
+   ========================================================================== */
+const state = {
+  mode: "demo", phase: 0, busy: false, pending: false,
+  notice: "", noticeTone: "",
+  source: "", destination: "", active: null, chain: null,
+  quote: null, proof: null, hash: null,
+  destinationSignature: null, sourceSignature: null,
+  router: CONFIG.router
+};
+const app = document.getElementById("app");
+const explorer = CONFIG.explorer;
+
+/* ==========================================================================
+   Formatting — Mezo stores the interest rate in basis points (100 = 1.00%).
+   ========================================================================== */
+function text(v){return String(v ?? "").replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);}
+function short(a){return a ? `${a.slice(0,6)}…${a.slice(-4)}` : "—";}
+const ONE = 10n ** 18n;
+function toNum(w){return Number(w) / 1e18;}
+function fmt(v,d=2){return toNum(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function btc(v){return toNum(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:8});}
+function rate(v){
+  if (v === null || v === undefined) return "—";
+  return `${(Number(v) / 100).toFixed(2)}%`;
+}
+function metric(v,u){return `${text(v)} <span class="unit">${u}</span>`;}
+function isDemo(){return state.mode === "demo";}
+function same(a,b){return Boolean(a && b && a.toLowerCase() === b.toLowerCase());}
+const isAddr = (a) => /^0x[0-9a-fA-F]{40}$/.test(a || "");
+function pad32(hex){return hex.replace(/^0x/,"").padStart(64,"0");}
+const word = (hex,i) => BigInt("0x" + hex.slice(i*64,(i+1)*64));
+
+/* ==========================================================================
+   RPC
+   ========================================================================== */
+async function rpc(method, params){
+  const r = await fetch(CONFIG.rpc,{method:"POST",headers:{"content-type":"application/json"},
+    body:JSON.stringify({jsonrpc:"2.0",id:1,method,params})});
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || "RPC error");
+  return j.result;
+}
+async function call(to, data){
+  const res = await rpc("eth_call",[{to,data},"latest"]);
+  if (!res || res === "0x") throw new Error("No result from contract");
+  return res.slice(2);
+}
+async function readTrove(addr){
+  const [s,c,d,r] = await Promise.all([
+    call(CONFIG.troveManager, SEL.getTroveStatus + pad32(addr)),
+    call(CONFIG.troveManager, SEL.getTroveColl + pad32(addr)),
+    call(CONFIG.troveManager, SEL.getTroveDebt + pad32(addr)),
+    call(CONFIG.troveManager, SEL.getTroveInterestRate + pad32(addr))
+  ]);
+  return {status:Number(BigInt("0x"+s)), coll:BigInt("0x"+c), debt:BigInt("0x"+d), rate:BigInt("0x"+r)};
+}
+async function previewQuote(src, replacementDebt){
+  const raw = await call(state.router, SEL.preview + pad32(src) + replacementDebt.toString(16).padStart(64,"0"));
+  return {collateral:word(raw,0), payoff:word(raw,1), principal:word(raw,2), flashFee:word(raw,3), change:word(raw,4)};
+}
+
+/* ==========================================================================
+   Shell
+   ========================================================================== */
+function render(){
+  const demo = isDemo();
+  const locked = state.busy || state.pending;
+  app.innerHTML = `
+    <header class="topbar">
+      <div class="top-inner">
+        <button class="brand" data-action="home" aria-label="Handoff home" ${locked?"disabled":""}>
+          <img src="assets/handoff-icon.png" width="31" height="31" alt="" />
+          <span>handoff<span class="dot">.</span></span>
+        </button>
+        <div class="top-actions">
+          <span class="net-label"><i aria-hidden="true"></i>Mezo Testnet</span>
+          ${!demo ? `<button class="button wallet-button" data-action="connect" ${state.busy?"disabled":""}>
+            <span class="wallet-indicator ${state.active && state.chain === CONFIG.chainId ? "connected":""}" aria-hidden="true"></span>
+            <span>${state.active ? text(short(state.active)) : "Connect wallet"}</span></button>`:""}
+          <div class="mode-control" role="group" aria-label="App mode">
+            <button data-action="demo" aria-pressed="${demo}" ${locked?"disabled":""}>Demo</button>
+            <button data-action="testnet" aria-pressed="${!demo}" ${locked?"disabled":""}>Testnet</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="workspace" class="workspace" tabindex="-1">
+      <section class="intro" aria-labelledby="page-title">
+        <h1 id="page-title">Move your Mezo loan<span class="dot">.</span></h1>
+        <p>Switch wallets while keeping the same Bitcoin collateral.</p>
+      </section>
+      <ol class="steps" aria-label="Transfer progress">
+        ${["Wallets","Review move","Receipt"].map((name,i)=>`
+          <li class="${i===state.phase?"current":i<state.phase?"complete":""}" ${i===state.phase?'aria-current="step"':""}>
+            <span class="step-number" aria-hidden="true">${i<state.phase?"✓":i+1}</span>
+            <span>${name}</span>
+          </li>`).join("")}
+      </ol>
+      <div class="grid">
+        <section class="work-panel" aria-labelledby="step-title">
+          ${state.phase===0?walletView():state.phase===1?reviewView():receiptView()}
+        </section>
+        <aside class="sidebar" aria-label="Loan summary">
+          ${loanSummary()}
+          <details class="explainer">
+            <summary>How the move works</summary>
+            <p>Temporary MUSD from Tigris pays off the old loan. The same BTC secures the replacement loan, whose proceeds repay Tigris. Mezo executes all three actions in one transaction.</p>
+          </details>
+        </aside>
+      </div>
+      <footer>
+        <span>Testnet assets only</span>
+        <div class="footer-links">
+          ${!demo?`<button class="link-button" data-action="router-settings" ${locked?"disabled":""}>Router settings</button>`:""}
+          <a href="https://testnet.mezo.org/feature/borrow" target="_blank" rel="noopener noreferrer">Mezo Borrow <span class="external-arrow" aria-hidden="true"></span></a>
+          <a href="https://faucet.test.mezo.org" target="_blank" rel="noopener noreferrer">Get test BTC <span class="external-arrow" aria-hidden="true"></span></a>
+          <a href="${explorer}" target="_blank" rel="noopener noreferrer">Mezo Explorer <span class="external-arrow" aria-hidden="true"></span></a>
+        </div>
+      </footer>
+    </main>`;
+  document.getElementById("live-status").textContent = state.notice;
+}
+
+function title(heading, sub){
+  return `<div class="step-heading">
+    <h2 id="step-title" tabindex="-1">${heading}</h2>
+    <p>${sub}</p>
+    ${state.notice?`<p class="notice ${state.noticeTone}">${text(state.notice)}</p>`:""}
+  </div>`;
+}
+
+function routeWallet(label, address, status){
+  const glyph = label.toLowerCase().startsWith("current") || label.toLowerCase().startsWith("from") ? '<span class="glyph" aria-hidden="true"></span>' : "";
+  return `<div class="route-wallet">
+    <span class="wallet-label">${glyph}${label}</span>
+    <code title="${text(address)}">${text(short(address))}</code>
+    <span class="wallet-status">${status}</span>
+  </div>`;
+}
+
+function walletPair(source, destination, before, after){
+  return `<div class="wallet-route">
+    <div class="wallet-pair">
+      ${routeWallet("Current wallet", source, before)}
+      <div class="arrow-tile" aria-hidden="true"><span>→</span></div>
+      ${routeWallet("New wallet", destination, after)}
+    </div>
+    <details class="addresses">
+      <summary>Full wallet addresses</summary>
+      <dl>
+        <div><dt>Current wallet</dt><dd><code>${text(source)}</code></dd></div>
+        <div><dt>New wallet</dt><dd><code>${text(destination)}</code></dd></div>
+      </dl>
+    </details>
+  </div>`;
+}
+
+function walletView(){
+  if (isDemo()){
+    return `${title("Choose your wallets","See how a Bitcoin-backed loan moves between two wallets.")}
+      ${walletPair(sampleSource, sampleDestination, "Active MUSD loan", "Ready to receive")}
+      <p class="sample-note"><i aria-hidden="true"></i>Example wallets and balances</p>
+      <div class="actions"><button class="button primary" data-action="demo-review">Review move <span class="forward-arrow" aria-hidden="true"></span></button></div>`;
+  }
+  const wrongNetwork = state.chain && state.chain !== CONFIG.chainId;
+  return `${title("Choose your wallets","Enter the wallet holding the loan, and the wallet that should receive it.")}
+    ${wrongNetwork?'<p class="notice warning">Use the wallet button to switch to Mezo Testnet.</p>':""}
+    <form id="wallet-form">
+      <div class="field">
+        <label for="source">Current wallet</label>
+        <div class="field-line">
+          <input id="source" name="source" autocomplete="off" spellcheck="false" placeholder="0x…" value="${text(state.source)}" required ${state.busy?"readonly":""} />
+          <button type="button" class="button secondary" data-action="use-source" ${state.busy?"disabled":""}>Use connected</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="destination">New wallet</label>
+        <div class="field-line">
+          <input id="destination" name="destination" autocomplete="off" spellcheck="false" placeholder="0x…" value="${text(state.destination)}" required aria-describedby="destination-help" ${state.busy?"readonly":""} />
+          <button type="button" class="button secondary" data-action="use-destination" ${state.busy?"disabled":""}>Use connected</button>
+        </div>
+        <p id="destination-help" class="subtle">Use a wallet you control with no active MUSD loan.</p>
+      </div>
+      <div class="actions"><button class="button primary" type="submit" ${state.busy?"disabled":""}>
+        ${state.busy==="quote"?"Looking up loan…":'Find loan and review <span class="forward-arrow" aria-hidden="true"></span>'}</button></div>
+    </form>`;
+}
+
+function detailRows(rows){return rows.map(([n,v])=>`<div><dt>${n}</dt><dd>${v}</dd></div>`).join("");}
+
+function reviewView(){
+  const demo = isDemo();
+  const q = demo ? sampleQuote : state.quote;
+  if (!q) {
+    return `${title("Review move","Load a fresh quote to continue.")}
+      <div class="actions between">
+        <button class="button secondary" data-action="back" ${state.busy?"disabled":""}>Edit wallets</button>
+        <button class="button primary" data-action="refresh-quote" ${state.busy?"disabled":""}>Refresh quote</button>
+      </div>`;
+  }
+  const secs = q.deadline ? Number(q.deadline) - Math.floor(Date.now()/1000) : null;
+  const oldDebt = demo ? sampleLoan.debt : q.loanDebt;
+  const oldRate  = demo ? sampleLoan.rate : q.loanRate;
+  const coll     = q.collateral ?? q.loan.collateral;
+  return `${title("Review move", demo ? "Compare the current loan with its replacement." : "Check the replacement debt, interest rate, and fees before signing.")}
+    ${walletPair(demo ? sampleSource : state.source, demo ? sampleDestination : state.destination, "Loan will close", "Replacement will open")}
+    <p class="mobile-collateral">BTC to move <strong>${metric(btc(coll),"BTC")}</strong></p>
+    <table class="terms">
+      <caption class="visually-hidden">Current and replacement loan terms</caption>
+      <thead><tr><td></td><th scope="col">Current</th><th scope="col">Replacement</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Loan balance</th>
+          <td>${metric(fmt(oldDebt,2),"MUSD")}</td>
+          <td>${metric(fmt(q.newDebt,2),"MUSD")}</td></tr>
+        <tr><th scope="row">Interest rate</th><td>${rate(oldRate)}</td><td>${rate(q.newRate)}</td></tr>
+      </tbody>
+    </table>
+    <section class="quote-details" aria-labelledby="costs-title">
+      <h3 id="costs-title">Payoff and fees</h3>
+      <dl class="data-list">
+        ${detailRows([
+          ["Current loan payoff", metric(fmt(q.payoff,2),"MUSD")],
+          ["Mezo opening fee", demo ? metric(fmt(q.origination,2),"MUSD") : "included in replacement"],
+          ["Estimated Tigris fee", metric(fmt(q.flashFee,2),"MUSD")],
+          ["Estimated change to current wallet", metric(fmt(q.change,4),"MUSD")]
+        ])}
+      </dl>
+      <p class="subtle">Loan balances include Mezo’s ${fmt(CONFIG.gasReserve,0)} MUSD reserve. The current wallet pays the network fee in test BTC.</p>
+    </section>
+    ${demo ? `<div class="actions between">
+      <button class="button secondary" data-action="back">Back</button>
+      <button class="button primary" data-action="demo-complete">Simulate move <span class="forward-arrow" aria-hidden="true"></span></button>
+    </div>` : reviewApprovals(q, secs)}`;
+}
+
+function reviewApprovals(q, secs){
+  return `<section class="approval-section" aria-labelledby="approvals-title">
+    <div class="approval-head"><h3 id="approvals-title">Wallet signatures</h3>
+      <span class="quote-age ${secs!==null && secs<=0?"expired":""}">${secs===null?"No expiry":clockLabel(secs)}</span></div>
+    ${state.router ? `<div class="approvals">
+      ${approval("New wallet", state.destination, state.destinationSignature, "sign-destination", "Open replacement loan", secs)}
+      ${approval("Current wallet", state.source, state.sourceSignature, "sign-source", "Close existing loan", secs)}
+    </div>` : '<p class="notice warning">Set up the Handoff router before signing.</p>'}
+  </section>
+  <div class="actions between">
+    <button class="button secondary" data-action="back" ${state.busy?"disabled":""}>Edit wallets</button>
+    <div class="action-group">
+      <button class="button secondary" data-action="refresh-quote" ${state.busy?"disabled":""}>
+        ${state.busy==="quote"?"Refreshing…":"Refresh quote"}</button>
+      ${state.router ? `<button class="button primary" data-action="submit" ${secs>0 && !state.busy && state.sourceSignature && state.destinationSignature ? "" : "disabled"}>
+        ${state.busy==="submit"?"Checking with Mezo…":'Move loan <span class="forward-arrow" aria-hidden="true"></span>'}</button>`
+        : '<button class="button primary" data-action="router-settings">Set up router <span class="forward-arrow" aria-hidden="true"></span></button>'}
+    </div>
+  </div>`;
+}
+
+function clockLabel(s){
+  if (s <= 0) return "Quote expired";
+  return `Expires in ${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+}
+
+function approval(label, address, signature, action, purpose, secs){
+  const connected = same(state.active, address) && state.chain === CONFIG.chainId;
+  return `<div class="approval">
+    <div class="approval-wallet">
+      <span class="wallet-label">${label}</span>
+      <code title="${text(address)}">${text(short(address))}</code>
+      <span class="wallet-status">${purpose}${connected?" · Connected":""}</span>
+    </div>
+    ${signature ? '<span class="signed"><span aria-hidden="true">✓</span> Signed</span>'
+      : `<button class="button secondary" data-action="${action}" aria-label="Sign with ${label.toLowerCase()}" ${state.busy || (secs!==null && secs<=0) ? "disabled":""}>${state.busy===action?"Waiting…":"Sign"}</button>`}
+  </div>`;
+}
+
+function receiptView(){
+  const demo = isDemo();
+  if (!demo && !state.proof){
+    return `${title(state.pending?"Waiting for Mezo":"Verify the transaction",
+      state.pending?"Check back once Mezo confirms the loan move.":"Verify that Mezo recorded both loan changes.")}
+      ${state.hash?`<a class="receipt-link" href="${explorer}/tx/${state.hash}" target="_blank" rel="noopener noreferrer">View ${text(short(state.hash))} on Mezo Explorer <span class="external-arrow" aria-hidden="true"></span></a>`:""}
+      <div class="actions between">
+        <button class="button secondary" data-action="restart" ${state.busy||state.pending?"disabled":""}>Start a new move</button>
+        <button class="button primary" data-action="check-receipt" ${state.busy||!state.hash?"disabled":""}>${state.busy?"Checking…":"Check transaction"}</button>
+      </div>`;
+  }
+  const p = demo ? {
+    source: sampleSource, destination: sampleDestination,
+    payoff: sampleQuote.payoff, flashFee: sampleQuote.flashFee, change: sampleQuote.change,
+    collateral: sampleLoan.collateral, newDebt: sampleQuote.newDebt, newRate: sampleQuote.newRate
+  } : state.proof;
+  return `${title(demo?"Demo transfer receipt":"Loan transfer confirmed",
+    demo?"Simulated result using the sample wallets.":"Mezo closed the old loan and opened the replacement in one transaction.")}
+    ${walletPair(p.source, p.destination, "Loan closed", "Replacement loan active")}
+    <dl class="data-list receipt-data">
+      ${detailRows([
+        ["Collateral moved", metric(btc(p.collateral),"BTC")],
+        ["Replacement loan", metric(fmt(p.newDebt,2),"MUSD")],
+        ["Old loan payoff", metric(fmt(p.payoff,2),"MUSD")],
+        ["Tigris fee", metric(fmt(p.flashFee,2),"MUSD")],
+        ["Change to current wallet", metric(fmt(p.change,4),"MUSD")]
+      ])}
+    </dl>
+    ${demo?'<p class="subtle" style="margin-top:12px">Demonstration receipt. No transaction hash, because no chain transaction occurred.</p>'
+      :`<div class="receipt-link-row">
+      <a class="receipt-link" href="${explorer}/tx/${p.hash}" target="_blank" rel="noopener noreferrer">View verified transaction <span class="external-arrow" aria-hidden="true"></span></a>
+      <span class="subtle">Block <code>${p.block.toString()}</code></span>
+    </div>`}
+    <div class="actions between">
+      <button class="button secondary" data-action="restart" ${state.busy?"disabled":""}>${demo?"Restart demo":"Start a new move"}</button>
+      <button class="button primary" data-action="${demo?"testnet":"share"}" ${state.busy?"disabled":""}>${demo?'Open Testnet <span class="forward-arrow" aria-hidden="true"></span>':"Copy receipt link"}</button>
+    </div>`;
+}
+
+function loanSummary(){
+  const demo = isDemo();
+  const q = demo ? sampleQuote : state.quote;
+  const proof = state.proof;
+  const review = Boolean(state.phase === 1 && q);
+  const replacement = Boolean(proof || (demo && state.phase === 2));
+  const coll = proof?.collateral ?? q?.collateral;
+  const debt = replacement ? (proof ?? q).newDebt : (demo ? sampleLoan.debt : q?.loanDebt);
+  const interest = replacement ? (proof ?? q).newRate : (demo ? sampleLoan.rate : q?.loanRate);
+  const label = replacement ? "Replacement loan" : review ? "Collateral to move" : "Current loan";
+  const chip = demo ? '<span class="chip">Demo</span>' : "";
+  return `<section class="loan-panel" aria-labelledby="position-title">
+    <div class="panel-head"><h2 id="position-title">${label}</h2>${chip}</div>
+    ${coll !== undefined
+      ? `<div class="balance">
+          <div class="coin" aria-hidden="true">₿</div>
+          <div class="meta">
+            <span>Bitcoin collateral</span>
+            <strong>${btc(coll)}<span class="unit">BTC</span></strong>
+          </div>
+        </div>
+        ${review
+          ? `<p class="position-note">The replacement uses the same BTC as collateral.</p>
+             ${!demo && q.blockNumber?`<p class="quote-block">Quote at block <code>${q.blockNumber.toString()}</code></p>`:""}`
+          : `<dl class="loan-data">
+              <div><dt>${replacement?"Replacement debt":"Current debt"}</dt><dd>${fmt(debt,2)}<span class="unit">MUSD</span></dd></div>
+              <div><dt>${replacement?"Replacement rate":"Current interest rate"}</dt><dd>${rate(interest)}</dd></div>
+            </dl>`}`
+      : `<div class="balance"><div class="coin" aria-hidden="true">₿</div>
+           <div class="meta"><span>Bitcoin collateral</span><strong>—<span class="unit">BTC</span></strong></div></div>
+         <p class="position-note">Find a loan to see its collateral, balance, and rate.</p>`}
+  </section>`;
+}
+
+/* ==========================================================================
+   Navigation + status
+   ========================================================================== */
+function goPhase(n){
+  state.phase = n;
+  render();
+  const h = document.getElementById("step-title") || document.getElementById("page-title");
+  if (h) h.focus({preventScroll:false});
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function say(m, tone=""){state.notice=m; state.noticeTone=tone;}
+
+/* ==========================================================================
+   Demo actions
+   ========================================================================== */
+function demoReview(){
+  state.quote = sampleQuote;
+  state.destinationSignature = null;
+  state.sourceSignature = null;
+  say(""); goPhase(1);
+}
+function demoComplete(){ say(""); goPhase(2); }
+
+/* ==========================================================================
+   Testnet actions
+   ========================================================================== */
+async function connect(){
+  say("");
+  if (!window.ethereum){ say("No browser wallet found. Install MetaMask or Rabby, then reload.","warning"); render(); return; }
+  try{
+    const accts = await window.ethereum.request({method:"eth_requestAccounts"});
+    state.active = accts[0];
+    state.chain = parseInt(await window.ethereum.request({method:"eth_chainId"}),16);
+    if (state.chain !== CONFIG.chainId){
+      try{
+        await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CONFIG.chainHex}]});
+      }catch{
+        await window.ethereum.request({method:"wallet_addEthereumChain",params:[{
+          chainId:CONFIG.chainHex, chainName:"Mezo Testnet",
+          nativeCurrency:{name:"BTC",symbol:"BTC",decimals:18},
+          rpcUrls:[CONFIG.rpc], blockExplorerUrls:[CONFIG.explorer]
+        }]});
+      }
+      state.chain = parseInt(await window.ethereum.request({method:"eth_chainId"}),16);
+    }
+    if (!state.source) state.source = state.active;
+    say(`Connected ${short(state.active)}.`);
+  }catch{
+    say("Wallet connection was declined.","warning");
+  }
+  render();
+}
+
+async function findLoan(src, dst){
+  say("");
+  if (!isAddr(src)){ say("The current wallet address isn't valid. Expected 0x and 40 hex characters.","warning"); render(); return; }
+  if (!isAddr(dst)){ say("The new wallet address isn't valid. Expected 0x and 40 hex characters.","warning"); render(); return; }
+  if (same(src,dst)){ say("Those are the same wallet. Choose a different new wallet.","warning"); render(); return; }
+
+  state.busy = "quote"; render();
+  try{
+    const a = await readTrove(src);
+    const b = await readTrove(dst);
+    if (a.status !== 1) throw new Error("This wallet has no active Mezo loan to move.");
+    if (b.status === 1) throw new Error("The new wallet already has an active loan. Mezo allows one per wallet.");
+
+    const payoff = a.debt > CONFIG.gasReserve ? a.debt - CONFIG.gasReserve : 0n;
+    const probe = await previewQuote(src, payoff + 300n * ONE);
+    const replacementDebt = payoff + probe.flashFee + 10n * ONE;
+    const pv = await previewQuote(src, replacementDebt);
+
+    let liveRate = null;
+    try{ liveRate = BigInt("0x"+await call(INTEREST_RATE_MANAGER, SEL.interestRate)); }catch{}
+
+    const blockNumber = BigInt(await rpc("eth_blockNumber",[]));
+    state.quote = {
+      loanDebt:a.debt, loanRate:liveRate, collateral:a.coll, payoff,
+      flashFee:pv.flashFee, principal:pv.principal,
+      newDebt:replacementDebt, newRate:liveRate, change:pv.change,
+      blockNumber, deadline: Math.floor(Date.now()/1000) + 600
+    };
+    state.destinationSignature = null;
+    state.sourceSignature = null;
+    state.busy = false;
+    goPhase(1);
+  }catch(e){
+    state.busy = false;
+    say(e.message || "Could not read that loan.","warning");
+    render();
+  }
+}
+
+/* --- EIP-712 --- */
+function typedData(primaryType, message){
+  const types = {
+    EIP712Domain:[
+      {name:"name",type:"string"},
+      {name:"version",type:"string"},
+      {name:"chainId",type:"uint256"},
+      {name:"verifyingContract",type:"address"}
+    ]
+  };
+  if (primaryType === "CloseTrove"){
+    types.CloseTrove = [
+      {name:"borrower",type:"address"},{name:"recipient",type:"address"},
+      {name:"nonce",type:"uint256"},{name:"deadline",type:"uint256"}
+    ];
+  } else {
+    types.OpenTrove = [
+      {name:"assetAmount",type:"uint256"},{name:"debtAmount",type:"uint256"},
+      {name:"borrower",type:"address"},{name:"recipient",type:"address"},
+      {name:"nonce",type:"uint256"},{name:"deadline",type:"uint256"}
+    ];
+  }
+  return {
+    domain:{name:CONFIG.domainName,version:CONFIG.domainVersion,chainId:CONFIG.chainId,verifyingContract:CONFIG.sigs},
+    primaryType, types, message
+  };
+}
+
+async function signFor(which){
+  say("");
+  if (!window.ethereum){ say("Connect a wallet first.","warning"); render(); return; }
+  if (!state.quote){ say("Refresh the quote before signing.","warning"); render(); return; }
+  const wants = which === "destination" ? state.destination : state.source;
+  if (!same(state.active, wants)){
+    say(`Switch your wallet to ${short(wants)} first — that wallet must sign.`,"warning"); render(); return;
+  }
+  state.busy = which === "destination" ? "sign-destination" : "sign-source";
+  render();
+  try{
+    const nonce = BigInt("0x"+await call(CONFIG.sigs, SEL.getNonce + pad32(wants)));
+    const deadline = state.quote.deadline;
+    let sig;
+    if (which === "destination"){
+      sig = await window.ethereum.request({method:"eth_signTypedData_v4",params:[wants,JSON.stringify(typedData("OpenTrove",{
+        assetAmount:"0x"+state.quote.collateral.toString(16),
+        debtAmount:"0x"+state.quote.newDebt.toString(16),
+        borrower:wants, recipient:state.router,
+        nonce:"0x"+nonce.toString(16), deadline:"0x"+deadline.toString(16)
+      }))]});
+      state.destinationSignature = {sig,nonce,deadline};
+    } else {
+      sig = await window.ethereum.request({method:"eth_signTypedData_v4",params:[wants,JSON.stringify(typedData("CloseTrove",{
+        borrower:wants, recipient:state.router,
+        nonce:"0x"+nonce.toString(16), deadline:"0x"+deadline.toString(16)
+      }))]});
+      state.sourceSignature = {sig,nonce,deadline};
+    }
+    say("Signature recorded.");
+  }catch{
+    say("Signing was cancelled or rejected.","warning");
+  }
+  state.busy = false;
+  render();
+}
+
+async function submitMove(){
+  say("");
+  if (!state.sourceSignature || !state.destinationSignature){
+    say("Both wallets must sign before the move can be submitted.","warning"); render(); return;
+  }
+  if (!same(state.active, state.source)){
+    say(`Switch your wallet to ${short(state.source)} — the current wallet submits.`,"warning"); render(); return;
+  }
+  const q = state.quote;
+  state.busy = "submit"; render();
+  try{
+    const data = SEL.moveLoan
+      + pad32(state.destination)
+      + pad32(q.collateral.toString(16))
+      + pad32(q.newDebt.toString(16))
+      + pad32(q.deadline.toString(16));
+    let hash;
+    try{
+      hash = await window.ethereum.request({method:"eth_sendTransaction",params:[{from:state.source,to:state.router,data}]});
+    }catch{
+      state.busy = false;
+      say("The wallet rejected the transaction, or it would revert. Nothing was moved.","warning");
+      render(); return;
+    }
+    state.hash = hash; state.pending = true; state.busy = false;
+    goPhase(2);
+    pollReceipt();
+  }catch(e){
+    state.busy = false;
+    say(e.message || "Submission failed.","warning"); render();
+  }
+}
+
+async function pollReceipt(){
+  if (!state.hash) return;
+  let rc;
+  try{ rc = await rpc("eth_getTransactionReceipt",[state.hash]); }
+  catch{ setTimeout(pollReceipt,5000); return; }
+  if (!rc){ setTimeout(pollReceipt,4000); return; }
+  state.pending = false;
+  if (rc.status === "0x1"){
+    const q = state.quote;
+    state.proof = {
+      source:state.source, destination:state.destination,
+      payoff:q.payoff, flashFee:q.flashFee, change:q.change,
+      collateral:q.collateral, newDebt:q.newDebt, newRate:q.newRate,
+      hash:state.hash, block:BigInt(rc.blockNumber)
+    };
+    say("Confirmed by Mezo.");
+  } else {
+    say("The transaction reverted. No loan was moved.","warning");
+  }
+  render();
+}
+
+/* ==========================================================================
+   Router dialog
+   ========================================================================== */
+const dialog = document.getElementById("router-dialog");
+document.getElementById("router-form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const v = document.getElementById("router-address").value.trim();
+  const st = document.getElementById("router-status");
+  if (!isAddr(v)){ st.textContent = "That isn't a valid address."; return; }
+  st.textContent = "Checking bytecode…";
+  try{
+    const code = await rpc("eth_getCode",[v,"latest"]);
+    if (!code || code === "0x"){ st.textContent = "No contract at that address on Mezo Testnet."; return; }
+    state.router = v; st.textContent = "Router set."; dialog.close(); render();
+  }catch(err){ st.textContent = "Could not verify: " + err.message; }
+});
+
+/* ==========================================================================
+   Events
+   ========================================================================== */
+app.addEventListener("click", (e)=>{
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  const a = el.dataset.action;
+  if (a === "demo"){ state.mode="demo"; state.phase=0; state.quote=null; state.notice=""; render(); }
+  else if (a === "testnet"){ state.mode="testnet"; state.phase=0; state.quote=null; state.notice=""; render(); }
+  else if (a === "home"){ state.phase=0; state.quote=null; state.proof=null; state.notice=""; render(); }
+  else if (a === "connect") connect();
+  else if (a === "demo-review") demoReview();
+  else if (a === "demo-complete") demoComplete();
+  else if (a === "back"){ state.notice=""; goPhase(0); }
+  else if (a === "restart"){ state.phase=0; state.quote=null; state.proof=null; state.hash=null; state.pending=false; state.notice=""; goPhase(0); }
+  else if (a === "use-source"){ if (state.active){ state.source = state.active; render(); } else { say("Connect a wallet first.","warning"); render(); } }
+  else if (a === "use-destination"){ if (state.active){ state.destination = state.active; render(); } else { say("Connect a wallet first.","warning"); render(); } }
+  else if (a === "refresh-quote"){ if (state.source && state.destination) findLoan(state.source, state.destination); }
+  else if (a === "sign-destination") signFor("destination");
+  else if (a === "sign-source") signFor("source");
+  else if (a === "submit") submitMove();
+  else if (a === "check-receipt"){ state.busy = true; render(); pollReceipt(); }
+  else if (a === "share"){ navigator.clipboard?.writeText(location.href); say("Receipt link copied."); render(); }
+  else if (a === "router-settings"){ document.getElementById("router-address").value = state.router || ""; dialog.showModal(); }
+  else if (a === "deploy-router"){
+    document.getElementById("router-status").textContent =
+      "Open web/deploy.html to deploy from your wallet, then paste the address here.";
+  }
+});
+
+app.addEventListener("submit", (e)=>{
+  if (e.target.id === "wallet-form"){
+    e.preventDefault();
+    state.source = document.getElementById("source").value.trim();
+    state.destination = document.getElementById("destination").value.trim();
+    findLoan(state.source, state.destination);
+  }
+});
+
+setInterval(()=>{
+  if (state.phase === 1 && !isDemo() && state.quote?.deadline){
+    const age = document.querySelector(".quote-age");
+    if (age){
+      const s = state.quote.deadline - Math.floor(Date.now()/1000);
+      age.textContent = clockLabel(s);
+      age.classList.toggle("expired", s <= 0);
+    }
+  }
+},1000);
+
+if (window.ethereum){
+  window.ethereum.on?.("accountsChanged",(a)=>{ state.active = a[0] || null; render(); });
+  window.ethereum.on?.("chainChanged",(c)=>{ state.chain = parseInt(c,16); render(); });
+}
+
+render();
+</script>
+</body>
+</html>
