@@ -1,6 +1,6 @@
 # SUBMISSION — Handoff
 
-Copy-paste ready for the AKINDO submission form. Fill the four `<<>>` fields.
+Copy-paste ready for the AKINDO submission form. All fields are filled.
 
 ---
 
