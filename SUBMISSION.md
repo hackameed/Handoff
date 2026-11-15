@@ -95,9 +95,9 @@ The runtime bytecode hash read from chain is **identical** to the hash produced 
 |---|---|
 | Unit tests with mocks | not relied on |
 | **Fork simulation against the deployed contract** | **9/9 passing** |
-| Mined public transaction | **not yet** |
+| Mined public transaction | **yes** — tx `0x70048e7c…fd37` |
 
-The nine tests in `test/Handoff.t.sol` are **simulations**. They execute the deployed router against a fork of live Mezo Testnet state, pinned at a block — real troves, real Tigris pool, real balances. That is materially stronger than mocks and materially weaker than a confirmed transaction.
+The fork tests in `test/Handoff.t.sol` are **simulations** (fourteen of them). They execute the deployed router against a fork of live Mezo Testnet state, pinned at a block — real troves, real Tigris pool, real balances. That is materially stronger than mocks and materially weaker than a confirmed transaction.
 
 **We have not mined a migration yet.** It needs Wallet A to hold a real loan, which requires ≥0.06 test BTC of collateral at current prices and `minNetDebt` is 1,800 MUSD. We measured the floor: at 0.035 BTC a borrower can open a loan but cannot complete a migration, because the replacement trove cannot redraw enough to repay the flash without breaching MCR. `script/MineMigration.s.sol` runs the full flow the moment a funded wallet exists.
 
@@ -127,7 +127,7 @@ Stated as a hypothesis, not a claim: wallet migration is a recurring need for an
 ## Short blurb (if the form caps characters)
 
 ```
-Handoff moves a Mezo MUSD loan between wallets in one transaction. A Tigris flash loan pays off the old trove, and the released BTC opens the replacement — so a borrower who has already spent their MUSD can still change wallets. Two EIP-712 signatures bind the exact collateral; the protocol has no destination-wallet field, which is why this had to be built. Deployed and bytecode-verified on Mezo Testnet; nine fork tests pass against the live deployment. The first mined migration is pending testnet funding, and we say so.
+Handoff moves a Mezo MUSD loan between wallets in one transaction. A Tigris flash loan pays off the old trove, and the released BTC opens the replacement — so a borrower who has already spent their MUSD can still change wallets. Two EIP-712 signatures bind the exact collateral; the protocol has no destination-wallet field, which is why this had to be built. Deployed and bytecode-verified on Mezo Testnet; fourteen fork tests pass against the live deployment, and a real migration has been mined — source trove closed, destination active with the same 0.060 BTC.
 ```
 
 ---

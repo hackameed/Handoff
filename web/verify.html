@@ -90,7 +90,8 @@
     <ol>
       <li><strong>Proves:</strong> the deployed bytecode is identical to the published, tested build.</li>
       <li><strong>Proves:</strong> the contract is bound to the real Mezo protocol addresses and reads the live Tigris fee.</li>
-      <li><strong>Does not prove:</strong> that a migration has been mined. The nine fork tests are <em>simulations</em> executed against live chain state — materially stronger than mocks, materially weaker than a confirmed transaction.</li>
+      <li><strong>Does not prove:</strong> that the migration path is safe in every market condition. The fork tests are <em>simulations</em> executed against live chain state — materially stronger than mocks, materially weaker than the mined transaction below.</li>
+      <li><strong>Does prove:</strong> the router executes. A real migration was mined on Mezo Testnet: <a href="https://explorer.test.mezo.org/tx/0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37" target="_blank" rel="noopener noreferrer">0x70048e7c…fd37</a> — source trove closed, destination active with the same 0.060 BTC.</li>
     </ol>
   </div>
 </div>

@@ -889,7 +889,7 @@ async function findLoan(src, dst){
       loanDebt:a.debt, loanRate:liveRate, collateral:a.coll, payoff,
       flashFee:pv.flashFee, principal:pv.principal,
       newDebt:replacementDebt, newRate:liveRate, change:pv.change,
-      blockNumber, deadline: Math.floor(Date.now()/1000) + 600
+      blockNumber, deadline: Math.floor(Date.now()/1000) + 900
     };
     state.destinationSignature = null;
     state.sourceSignature = null;
