@@ -27,7 +27,7 @@ DeFi — borrowing infrastructure
 | Field | Value |
 |---|---|
 | Live app | `<<LIVE_DEMO_URL>>` |
-| Repository | `<<GITHUB_URL>>` |
+| Repository | `https://github.com/hackameed/Handoff` |
 | Demo video | `<<VIDEO_URL>>` |
 | Contract (Mezo Testnet) | `https://explorer.test.mezo.org/address/0x2d2c1B42a75Cf360Ba3A70Bd6ad3a3C619069762` |
 | Deploy transaction | `https://explorer.test.mezo.org/tx/0xd745ce35e5baa0abace396a377eddfd3ca0c83b43de13c45e38d0d8fc7c400bd` |
@@ -135,7 +135,7 @@ Handoff moves a Mezo MUSD loan between wallets in one transaction. A Tigris flas
 ## Pre-submit checklist
 
 - [ ] `<<LIVE_DEMO_URL>>` resolves and Demo mode walks to the receipt
-- [ ] `<<GITHUB_URL>>` is public and the repo has no `.deploy/` directory
+- [ ] `https://github.com/hackameed/Handoff` is public and has no `.deploy/` directory
 - [ ] `<<VIDEO_URL>>` plays without login
 - [ ] Explorer link opens the contract
 - [ ] Read the description once more and confirm **every** claim is one you'd defend to a Mezo core dev
