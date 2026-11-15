@@ -9,314 +9,304 @@
 <script>
   /* Applied before first paint so a light-mode visitor never sees a dark flash. */
   (function(){try{
-    var p = localStorage.getItem("handoff-theme") || "dark";
+    var p = localStorage.getItem("handoff-theme") || "light";
     var dark = p === "dark" || (p === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "dark" : "light";
   }catch(e){}})();
 </script>
 <style>
 :root{
-  color-scheme: dark;
+  color-scheme: light;
   font-family:"Geist","Geist Variable",system-ui,-apple-system,"Segoe UI",Inter,Roboto,sans-serif;
-  --bg:#0d0c0a;
-  --panel:#16140f;
-  --panel-2:#1b1913;
-  --well:#12110d;
-  --stroke:#2b281f;
-  --stroke-2:#3a3628;
-  --ink:#f4f0e6;
-  --muted:#9c9686;
-  --faint:#6d6858;
-  --amber:#efb86b;
-  --amber-soft:#c99a58;
-  --amber-deep:#8a6a3c;
-  --green:#93c48c;
-  --on-amber:#1a1408;
-  --amber-hover:#f6c884;
-  --panel-hover:#221f18;
-  --ctrl-bg:#100f0c;
-  --ctrl-on:#2c2920;
-  --disabled-bg:#171510;
-  --disabled-stroke:#262319;
-  --disabled-ink:#5c574a;
-  --accent-well:#191509;
-  --accent-well-stroke:#4a3f28;
-  --arrow-bg:#3a3020;
-  --col-tint:#1b1810;
-  --notice-bg:#1a1710;
-  --danger:#e08b7f;
-  --danger-bg:#1b1210;
-  --danger-ink:#e6b5ab;
+  --bg:#f2f1ea;
+  --panel:#ffffff;
+  --rule:#e3e0d4;
+  --rule-strong:#cdc9b9;
+  --ink:#14140f;
+  --muted:#6c6a5f;
+  --faint:#8e8b7e;
+  --forest:#1e3a2c;
+  --forest-deep:#14281e;
+  --forest-panel:#173425;
+  --on-forest:#f3f1e8;
+  --on-forest-muted:#b3bfb5;
+  --on-forest-line:#3d5a49;
+  --amber:#e9a35c;
+  --amber-deep:#c98a45;
+  --on-amber:#16140c;
+  --tint:#f0eee4;
+  --btn:#1e3a2c;
+  --btn-hover:#162c21;
+  --on-btn:#f6f4ec;
+  --danger:#a24a32;
+  --danger-bg:#faeee9;
   --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-  --gutter:clamp(18px,4.5vw,56px);
+  --gutter:clamp(20px,5vw,80px);
 }
 
-/* Light — warm paper, not a washed-out inversion. Amber darkens to stay legible. */
-:root[data-theme="light"]{
-  color-scheme: light;
-  --bg:#f7f4ec;
-  --panel:#ffffff;
-  --panel-2:#f2eee3;
-  --well:#faf7f0;
-  --stroke:#e5dfd0;
-  --stroke-2:#d3cab6;
-  --ink:#1c1913;
-  --muted:#6b6455;
-  --faint:#8e8776;
-  --amber:#b9761f;
-  --amber-soft:#9c6318;
-  --amber-deep:#d8b47a;
-  --green:#3f7a44;
-  --on-amber:#fffaf0;
-  --amber-hover:#a8661a;
-  --panel-hover:#f3efe4;
-  --ctrl-bg:#f1ece0;
-  --ctrl-on:#e3dacb;
-  --disabled-bg:#f2efe7;
-  --disabled-stroke:#e0d9c9;
-  --disabled-ink:#a9a293;
-  --accent-well:#fdf8ee;
-  --accent-well-stroke:#e2cfa7;
-  --arrow-bg:#efe2c6;
-  --col-tint:#fbf7ee;
-  --notice-bg:#fbf6ea;
-  --danger:#b4462f;
-  --danger-bg:#fdf1ee;
-  --danger-ink:#8f3521;
+/* Dark — the same structure, inverted. Evergreen becomes the page, panels go near-black. */
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0f120f;
+  --panel:#171b16;
+  --rule:#2a312a;
+  --rule-strong:#3b453b;
+  --ink:#eeece1;
+  --muted:#9b9d90;
+  --faint:#767a6d;
+  --forest:#16281e;
+  --forest-deep:#101d15;
+  --forest-panel:#16301f;
+  --on-forest:#f0eee3;
+  --on-forest-muted:#a9b7aa;
+  --on-forest-line:#3a5644;
+  --amber:#e9a35c;
+  --amber-deep:#b87f3f;
+  --on-amber:#16140c;
+  --tint:#1e231d;
+  --btn:#2d5c43;
+  --btn-hover:#376f51;
+  --on-btn:#f6f4ec;
+  --danger:#e0937c;
+  --danger-bg:#231713;
 }
-:root[data-theme="light"] .panel-head .chip{color:var(--amber)}
-:root[data-theme="light"] .balance .meta span,
-:root[data-theme="light"] .route-wallet .wallet-status{color:var(--muted)}
-:root[data-theme="light"] dialog::backdrop{background:#2b241a80}
+
 *{box-sizing:border-box}
 html{overflow-x:hidden}
 body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-h1,h2,h3,p,ol,dl,dd{margin:0}
+h1,h2,h3,p,ol,dl,dd,figure{margin:0}
 button,input{font:inherit}
 button{cursor:pointer;color:inherit}
 button:disabled{cursor:default}
 a{color:inherit}
 code{font-family:var(--mono)}
-:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:3px}
-#step-title:focus,#workspace:focus{outline:none}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+#step-title:focus,#page-title:focus,#workspace:focus{outline:none}
 
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.skip-link{position:fixed;z-index:9;inset:10px auto auto 10px;padding:10px 15px;background:var(--amber);color:var(--on-amber);border-radius:6px;font-weight:650;transform:translateY(-180%);text-decoration:none}
+.skip-link{position:fixed;z-index:9;inset:10px auto auto 10px;padding:10px 15px;background:var(--forest);color:var(--on-forest);font-weight:650;transform:translateY(-180%);text-decoration:none}
 .skip-link:focus{transform:translateY(0)}
 
-/* ---------- header ---------- */
-.topbar{border-bottom:1px solid var(--stroke)}
-.top-inner,.workspace{width:min(1180px,calc(100% - 2*var(--gutter)));margin-inline:auto}
-.top-inner,.top-actions,.brand,.mode-control,.wallet-button{display:flex;align-items:center}
-.top-inner{min-height:72px;justify-content:space-between;gap:14px}
-.brand{padding:0;border:0;gap:12px;background:none;font-size:23px;line-height:1;font-weight:800;letter-spacing:-.045em}
-.brand img{flex:none;border-radius:7px}
-.brand .dot{color:var(--amber)}
-.top-actions{gap:16px}
-.net-label{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
-.net-label i{width:6px;height:6px;border-radius:50%;background:var(--amber)}
-.mode-control{border:1px solid var(--stroke-2);border-radius:7px;overflow:clip;gap:2px;padding:3px;background:var(--ctrl-bg)}
-.mode-control button{min-height:30px;padding:0 15px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:13px;font-weight:560}
-.mode-control button[aria-pressed="true"]{color:var(--ink);background:var(--ctrl-on);font-weight:650}
+/* ---------------- header ---------------- */
+.topbar{border-bottom:1px solid var(--rule)}
+.top-inner{width:min(1400px,calc(100% - 2*var(--gutter)));margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:86px}
+.brand{display:flex;align-items:center;gap:12px;padding:0;border:0;background:none;font-size:25px;font-weight:750;letter-spacing:-.025em}
+.brand img{flex:none;width:34px;height:34px;border-radius:8px}
+.top-actions{display:flex;align-items:center;gap:10px}
+.mode-control{display:flex;border:1px solid var(--rule-strong);background:var(--panel)}
+.mode-control button{min-height:38px;padding:0 22px;border:0;border-left:1px solid var(--rule-strong);background:transparent;color:var(--muted);font-size:13.5px;font-weight:600}
+.mode-control button:first-child{border-left:0}
+.mode-control button[aria-pressed="true"]{color:var(--ink);background:var(--tint);font-weight:680}
 .mode-control button:hover:not(:disabled):not([aria-pressed="true"]){color:var(--ink)}
-.wallet-button{gap:8px}
-.wallet-indicator{width:7px;height:7px;border:1px solid var(--faint);border-radius:50%}
-.wallet-indicator.connected{border-color:var(--green);background:var(--green)}
-
-.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid var(--stroke-2);border-radius:7px;background:var(--ctrl-bg);color:var(--muted);transition:color .13s,border-color .13s,background-color .13s}
+.wallet-button{display:inline-flex;align-items:center;gap:9px}
+.wallet-indicator{width:7px;height:7px;border-radius:50%;border:1px solid var(--faint);flex:none}
+.wallet-indicator.connected{border-color:#5f8f5c;background:#5f8f5c}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border:1px solid var(--rule-strong);background:var(--panel);color:var(--muted)}
 .theme-toggle:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
 .theme-toggle svg{width:15px;height:15px;display:block}
-.theme-toggle .visually-hidden{position:absolute}
 
-/* ---------- intro ---------- */
-.workspace{padding:52px 0 30px}
-.intro{margin-bottom:34px}
-.intro h1{font-size:clamp(38px,7vw,74px);font-weight:800;letter-spacing:-.045em;line-height:1.02}
-.intro h1 .dot{color:var(--amber)}
-.intro p{margin-top:14px;color:var(--muted);font-size:clamp(15px,1.8vw,17px)}
+/* ---------------- page ---------------- */
+.workspace{width:min(1400px,calc(100% - 2*var(--gutter)));margin-inline:auto;padding:clamp(28px,4vw,54px) 0 34px}
+.intro h1{font-size:clamp(34px,4.6vw,54px);font-weight:730;letter-spacing:-.035em;line-height:1.04}
+.intro p{margin-top:14px;color:var(--muted);font-size:clamp(14px,1.5vw,16px)}
 
-/* ---------- progress ---------- */
-.steps{display:flex;align-items:center;gap:0;list-style:none;padding:0;margin:0 0 22px;border-bottom:1px solid var(--stroke);padding-bottom:20px}
-.steps li{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:13.5px;font-weight:520;flex:0 0 auto}
-.steps li + li::before{content:"";display:block;width:clamp(20px,7vw,86px);height:1px;background:var(--stroke-2);margin:0 16px 0 16px}
-.step-number{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--stroke-2);color:var(--faint);font:600 11px/1 var(--mono)}
-.steps li.current{color:var(--ink);font-weight:650}
-.steps li.current .step-number{border-color:var(--amber);color:var(--amber)}
-.steps li.complete{color:var(--muted)}
-.steps li.complete .step-number{border-color:var(--amber-deep);color:var(--amber)}
+.layout{display:grid;grid-template-columns:minmax(150px,186px) minmax(0,1fr) minmax(280px,432px);gap:clamp(16px,2.4vw,30px);align-items:start;margin-top:clamp(24px,3vw,38px)}
 
-/* ---------- layout ---------- */
-.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,372px);gap:22px;align-items:start}
-.work-panel{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:30px 30px 28px;min-width:0}
-.step-heading{margin-bottom:24px}
-.step-heading h2{font-size:clamp(22px,2.4vw,28px);font-weight:700;letter-spacing:-.028em;line-height:1.15}
-.step-heading > p{margin-top:9px;font-size:14px;line-height:1.5;color:var(--muted);max-width:52ch}
+/* ---------------- vertical step rail ---------------- */
+.stepper ol{list-style:none;margin:0;padding:0;display:grid}
+.stepper li{display:flex;align-items:center;gap:12px;min-height:58px;padding:0 16px;border-bottom:1px solid var(--rule);color:var(--faint);font-size:14px;font-weight:560}
+.stepper li:first-child{border-top:1px solid var(--rule)}
+.step-index{font:600 11.5px/1 var(--mono);color:var(--faint);letter-spacing:.02em}
+.stepper li.current{color:var(--ink);font-weight:700;background:var(--tint);border-left:3px solid var(--forest);padding-left:13px}
+.stepper li.complete{color:var(--muted)}
+.stepper li.complete .step-index{color:var(--forest)}
+:root[data-theme="dark"] .stepper li.current{border-left-color:var(--amber)}
+:root[data-theme="dark"] .stepper li.complete .step-index{color:var(--amber)}
+:root[data-theme="dark"] .stepper li.current .step-index{color:var(--ink)}
 
-/* ---------- wallet tiles ---------- */
-.wallet-route{margin-bottom:20px}
-.wallet-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch}
-.route-wallet{display:grid;gap:7px;align-content:start;padding:16px 17px;border:1px solid var(--stroke-2);border-radius:11px;background:var(--well);min-width:0}
-.route-wallet:last-child{border-color:var(--accent-well-stroke);background:var(--accent-well)}
-.wallet-label{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11.5px;font-weight:560}
-.wallet-label .glyph{width:13px;height:11px;border:1.5px solid var(--faint);border-radius:2px;position:relative;flex:none}
-.wallet-label .glyph::after{content:"";position:absolute;right:-3px;top:2px;width:5px;height:5px;border:1.5px solid var(--faint);border-radius:1px;background:var(--well)}
-.route-wallet > code{font-size:clamp(14px,1.6vw,16px);font-weight:650;letter-spacing:-.01em;overflow-wrap:anywhere}
-.wallet-status{color:var(--faint);font-size:12px}
-.arrow-tile{display:grid;place-items:center;align-self:center}
-.arrow-tile span{display:grid;place-items:center;width:30px;height:30px;border-radius:7px;background:var(--arrow-bg);color:var(--amber);font-size:14px}
+/* ---------------- work panel ---------------- */
+.work-panel{background:var(--panel);border:1px solid var(--rule);padding:clamp(20px,2.6vw,34px) clamp(18px,2.6vw,32px)}
+.step-head{margin-bottom:clamp(20px,2.4vw,30px)}
+.step-head h2{font-size:clamp(23px,2.6vw,31px);font-weight:720;letter-spacing:-.028em;line-height:1.12}
+.step-head > p{margin-top:10px;color:var(--muted);font-size:14.5px;line-height:1.5;max-width:56ch}
+.step-head .notice{margin-top:16px}
+
+/* ---------------- wallet route ---------------- */
+.route{margin-bottom:clamp(18px,2vw,26px)}
+.route-line{display:flex;align-items:center;height:12px}
+.route-node{width:8px;height:8px;border:1.5px solid var(--faint);background:transparent;flex:none}
+.route-node.route-end{border-color:var(--amber-deep);background:var(--amber)}
+.route-arrow{flex:1 1 auto;height:0;border-top:1px solid var(--rule-strong);margin:0 6px;position:relative}
+.route-arrow::after{content:"";position:absolute;right:0;top:-4px;width:7px;height:7px;border-top:1px solid var(--rule-strong);border-right:1px solid var(--rule-strong);transform:rotate(45deg)}
+.route-ends{display:flex;justify-content:space-between;gap:18px;margin-top:10px}
+.route-right{text-align:right}
+.route-label{display:block;font-size:12.5px;font-weight:640;color:var(--ink)}
+.route-address{display:block;margin-top:7px;font-size:17px;font-weight:600;letter-spacing:-.01em;overflow-wrap:anywhere}
+.route-note{display:block;margin-top:6px;font-size:12.5px;color:var(--muted)}
 .addresses{margin-top:12px}
-.addresses summary{cursor:pointer;font-size:12px;color:var(--faint);width:fit-content}
-.addresses summary:hover{color:var(--muted)}
-.addresses dl{margin-top:9px;padding:10px 13px;background:var(--well);border-radius:8px}
-.addresses dl > div{padding:4px 0}
-.addresses dt{font-size:11px;color:var(--faint);font-weight:600}
-.addresses dd{font-size:12px;line-height:1.55;overflow-wrap:anywhere;font-family:var(--mono)}
+.addresses summary{cursor:pointer;font-size:12.5px;color:var(--muted);width:fit-content}
+.addresses summary:hover{color:var(--ink)}
+.addresses dl{margin-top:10px;padding:12px 14px;background:var(--tint)}
+.addresses dl > div + div{margin-top:8px}
+.addresses dt{font-size:11px;font-weight:620;color:var(--faint);letter-spacing:.03em;text-transform:uppercase}
+.addresses dd{margin:3px 0 0;font-size:12px;font-family:var(--mono);overflow-wrap:anywhere}
 
-.sample-note{display:flex;align-items:center;gap:8px;color:var(--faint);font-size:12.5px;margin-top:16px}
-.sample-note i{width:6px;height:6px;border-radius:50%;background:var(--amber);flex:none}
+/* ---------------- compare table ---------------- */
+.compare{margin-top:clamp(18px,2vw,26px);border-top:1px solid var(--rule)}
+.compare-head,.compare-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);align-items:stretch}
+.compare-head{padding:10px 12px 10px 0;font-size:12px;color:var(--faint);font-weight:620}
+.compare-head span:not(:first-child){text-align:right;padding-right:12px}
+.compare-row{border-top:1px solid var(--rule);font-size:14px}
+.compare-row > span{display:flex;align-items:baseline;justify-content:flex-end;gap:0;padding:15px 12px;min-width:0}
+.compare-row > span:first-child{justify-content:flex-start;padding-left:0;color:var(--muted);font-weight:600;white-space:normal}
+.compare-row > span:not(:first-child){font-weight:680;white-space:nowrap}
+.compare-row > span:last-child{background:var(--tint)}
+.unit{color:var(--faint);font-size:10.5px;font-weight:600;margin-left:5px;letter-spacing:.02em;white-space:nowrap}
 
-/* ---------- buttons ---------- */
-.actions{margin-top:24px;display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px}
+.section-title{font-size:14.5px;font-weight:700;margin-top:clamp(20px,2.2vw,28px)}
+.fee-list{margin-top:8px}
+.fee-list > div{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:13.5px}
+.fee-list > div:last-child{border-bottom:0}
+.fee-list dt{color:var(--muted)}
+.fee-list dd{font-weight:660;text-align:right}
+.footnote{margin-top:12px;padding-top:2px}
+.subtle{color:var(--muted);font-size:12.5px;line-height:1.6}
+
+/* ---------------- buttons ---------------- */
+.actions{margin-top:clamp(20px,2.2vw,28px);display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 .actions.between{justify-content:space-between}
-.action-group{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.button{display:inline-flex;justify-content:center;align-items:center;gap:10px;min-height:42px;padding:9px 17px;white-space:nowrap;border:1px solid var(--stroke-2);border-radius:8px;background:transparent;color:var(--ink);font-size:13.5px;font-weight:620;text-decoration:none;transition:background-color .13s,border-color .13s,color .13s}
-.button.primary{background:var(--amber);border-color:var(--amber);color:var(--on-amber);font-weight:700}
-.button.primary:hover:not(:disabled){background:var(--amber-hover);border-color:var(--amber-hover)}
-.button.secondary:hover:not(:disabled),.wallet-button:hover:not(:disabled){background:var(--panel-hover);border-color:var(--stroke-2)}
-.button:disabled{border-color:var(--disabled-stroke);background:var(--disabled-bg);color:var(--disabled-ink)}
-.button:disabled > span{color:inherit}
-.forward-arrow,.external-arrow{position:relative;display:inline-block;width:13px;height:8px;flex:none}
-.forward-arrow::before,.external-arrow::before{content:"";position:absolute;inset:50% 0 auto 0;border-top:1.5px solid currentColor}
-.forward-arrow::after,.external-arrow::after{content:"";position:absolute;right:0;top:calc(50% - 3px);width:5px;height:5px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:rotate(45deg)}
+.action-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:10px 20px;border:1px solid var(--rule-strong);background:transparent;color:var(--ink);font-size:13.5px;font-weight:650;white-space:nowrap;text-decoration:none;transition:background-color .13s,border-color .13s,color .13s}
+.button:hover:not(:disabled){border-color:var(--faint)}
+.button.primary{background:var(--btn);border-color:var(--btn);color:var(--on-btn);font-weight:660}
+.button.primary:hover:not(:disabled){background:var(--btn-hover);border-color:var(--btn-hover)}
+.button.secondary:hover:not(:disabled){background:var(--tint)}
+.button:disabled{opacity:.45;border-color:var(--rule-strong);background:transparent;color:var(--muted)}
+.forward-arrow,.external-arrow{position:relative;display:inline-block;width:14px;height:8px;flex:none}
+.forward-arrow::before,.external-arrow::before{content:"";position:absolute;inset:50% 0 auto 0;border-top:1.4px solid currentColor}
+.forward-arrow::after,.external-arrow::after{content:"";position:absolute;right:0;top:calc(50% - 3px);width:5px;height:5px;border-top:1.4px solid currentColor;border-right:1.4px solid currentColor;transform:rotate(45deg)}
 .external-arrow{width:8px;transform:rotate(-45deg);margin-inline:2px}
 
-/* ---------- fields ---------- */
-.field + .field{margin-top:17px}
-.field-line{display:flex;align-items:stretch;gap:8px}
+/* ---------------- fields ---------------- */
+.field + .field{margin-top:20px}
+.field-line{display:flex;align-items:stretch;gap:10px}
 .field-line input{flex:1 1 auto;min-width:0}
-label{display:block;margin-bottom:7px;font-size:12.5px;font-weight:620;color:var(--muted)}
-input{min-height:44px;width:100%;padding:10px 12px;border:1px solid var(--stroke-2);border-radius:8px;background:var(--well);color:var(--ink);font:400 13px/1.3 var(--mono)}
+label{display:block;margin-bottom:8px;font-size:13px;font-weight:660}
+input{min-height:48px;width:100%;padding:11px 14px;border:1px solid var(--rule-strong);background:var(--panel);color:var(--ink);font:400 13px/1.3 var(--mono)}
 input::placeholder{color:var(--faint)}
-.subtle{color:var(--faint);font-size:12px;line-height:1.5}
-.field .subtle{margin-top:7px}
+.field .subtle{margin-top:9px}
 
-/* ---------- sidebar ---------- */
-.sidebar{min-width:0;display:grid;gap:14px}
-.loan-panel{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:20px 20px 18px}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
-.panel-head h2{font-size:16px;font-weight:680;letter-spacing:-.015em}
-.chip{font-size:11px;font-weight:620;color:var(--amber);border:1px solid var(--amber-deep);border-radius:5px;padding:3px 8px}
-.balance{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1px solid var(--accent-well-stroke);border-radius:11px;background:var(--accent-well)}
-.coin{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--amber);color:var(--on-amber);font-size:17px;font-weight:700;flex:none}
-.balance .meta{display:grid;gap:2px;min-width:0}
-.balance .meta span{color:var(--muted);font-size:11.5px}
-.balance strong{font-size:clamp(24px,2.6vw,29px);font-weight:700;letter-spacing:-.035em;line-height:1.1}
-.balance .unit{color:var(--faint);font-size:11px;font-weight:600;margin-left:3px;letter-spacing:0}
-.loan-data{margin-top:6px}
-.loan-data > div,.data-list > div{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 2px;border-bottom:1px solid var(--stroke)}
-.loan-data > div:last-child,.data-list > div:last-child{border-bottom:0}
-.loan-data dt,.data-list dt{color:var(--muted);font-size:12.5px;line-height:1.35}
-.loan-data dd,.data-list dd{font-size:13.5px;font-weight:650;text-align:right;font-variant-numeric:tabular-nums}
-.loan-data .unit,.data-list .unit{color:var(--faint);font-size:10.5px;font-weight:600;margin-left:3px}
-.position-note{margin-top:12px;color:var(--faint);font-size:12px;line-height:1.5}
-.quote-block{margin-top:10px;padding-top:10px;border-top:1px solid var(--stroke);color:var(--faint);font-size:11.5px}
+/* ---------------- evergreen aside ---------------- */
+.aside{display:grid;gap:0}
+.aside-panel{background:var(--forest-panel);color:var(--on-forest);border-top:4px solid var(--amber);padding:clamp(20px,2.2vw,26px) clamp(18px,2.2vw,24px)}
+.aside-panel h2{font-size:16px;font-weight:660;letter-spacing:-.01em}
+.aside-figure{display:flex;align-items:baseline;gap:8px;margin-top:clamp(18px,2vw,26px);padding-bottom:clamp(16px,1.8vw,22px)}
+.aside-figure strong{font-size:clamp(34px,3.6vw,44px);font-weight:700;letter-spacing:-.04em;line-height:1}
+.aside-figure span{font-size:13px;color:var(--on-forest-muted);font-weight:600}
+.aside-list{margin:0;border-top:1px solid var(--on-forest-line)}
+.aside-list > div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--on-forest-line)}
+.aside-list dt{color:var(--on-forest-muted);font-size:13px}
+.aside-list dd{margin:0;font-size:14px;font-weight:660}
+.aside-list .unit{color:var(--on-forest-muted)}
+.aside-note{margin-top:14px;color:var(--on-forest-muted);font-size:13px;line-height:1.55}
+.aside-meta{margin-top:10px;color:var(--on-forest-muted);font-size:11.5px;font-family:var(--mono)}
 
-.explainer{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;padding:15px 18px}
-.explainer summary{cursor:pointer;font-size:13px;font-weight:620;list-style:none;display:flex;align-items:center;gap:9px}
-.explainer summary::-webkit-details-marker{display:none}
-.explainer summary::before{content:"▶";font-size:8px;color:var(--amber);transition:transform .15s}
-.explainer[open] summary::before{transform:rotate(90deg)}
-.explainer p{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.6}
+.aside-details{background:var(--tint);border:1px solid var(--rule);border-top:0}
+.aside-details summary{cursor:pointer;list-style:none;padding:15px 20px;font-size:13px;font-weight:650;display:flex;align-items:center;gap:9px}
+.aside-details summary::-webkit-details-marker{display:none}
+.aside-details summary::before{content:"";width:0;height:0;border-left:4.5px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transition:transform .15s}
+.aside-details[open] summary::before{transform:rotate(90deg)}
+.aside-details p{padding:0 20px 16px;font-size:12.5px;line-height:1.65;color:var(--muted)}
 
-/* ---------- review ---------- */
-.mobile-collateral{display:none}
-.terms{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;margin-top:4px}
-.terms td,.terms th{padding:12px 10px;border-bottom:1px solid var(--stroke);vertical-align:baseline}
-.terms td,.terms thead th{text-align:right}
-.terms tr > :first-child{text-align:left;width:32%;padding-left:2px;color:var(--muted);font-size:12.5px}
-.terms tr > :last-child{width:34%;background:var(--col-tint)}
-.terms thead th{font-size:11.5px;color:var(--faint);font-weight:600}
-.terms tbody th{font-weight:560;font-size:12.5px}
-.terms tbody td{font-weight:650}
-.terms .unit{color:var(--faint);font-size:10.5px;font-weight:600;margin-left:3px}
-.quote-details,.approval-section{margin-top:22px}
-.quote-details h3,.approval-head h3{font-size:13.5px;font-weight:660;margin-bottom:4px}
-.quote-details > p{margin-top:10px}
-.approval-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.quote-age{font:500 11px/1.3 var(--mono);color:var(--faint)}
+/* ---------------- approvals ---------------- */
+.quote-details,.approval-section{margin-top:clamp(20px,2.2vw,28px)}
+.approval-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.approval-head .section-title{margin-top:0}
+.quote-age{font:500 11.5px/1.4 var(--mono);color:var(--faint)}
 .quote-age.expired{color:var(--danger)}
-.approvals{border-top:1px solid var(--stroke)}
-.approval{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:62px;padding:9px 0;border-bottom:1px solid var(--stroke)}
-.approval-wallet{display:grid;grid-template-columns:auto auto;align-items:baseline;justify-content:start;gap:4px 9px}
-.approval-wallet code{font-size:11.5px;color:var(--muted)}
-.approval-wallet .wallet-status{grid-column:1/-1;color:var(--faint);font-size:11.5px}
-.approval .button{min-height:36px;min-width:58px;padding-inline:13px;font-size:12.5px}
-.signed{color:var(--green);font-size:12px;font-weight:650;white-space:nowrap}
-.notice,.step-heading>.notice{padding:11px 13px;border-left:2px solid var(--amber);background:var(--notice-bg);color:var(--muted);font-size:12.5px;line-height:1.55;border-radius:0 8px 8px 0;overflow-wrap:anywhere}
-.notice.warning{border-left-color:var(--danger);background:var(--danger-bg);color:var(--danger-ink)}
-.step-heading>.notice{margin-top:13px}
-.notice + form{margin-top:13px}
-.receipt-data{background:var(--well);border-radius:10px;padding:2px 14px;margin-top:4px}
-.receipt-link,.text-link{color:var(--amber);font-size:13px;text-underline-offset:3px;overflow-wrap:anywhere}
-.receipt-link-row{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:16px}
+.approvals{margin-top:10px;border-top:1px solid var(--rule)}
+.approval{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:66px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.approval-wallet{display:grid;grid-template-columns:auto auto;align-items:baseline;justify-content:start;gap:2px 10px}
+.approval-label{font-size:13px;font-weight:660}
+.approval-wallet code{font-size:12px;color:var(--muted)}
+.approval-note{grid-column:1/-1;font-size:12px;color:var(--faint)}
+.approval .button{min-height:38px;padding-inline:16px;font-size:12.5px}
+.signed{color:#5f8f5c;font-size:12.5px;font-weight:660;white-space:nowrap}
 
-/* ---------- footer ---------- */
-footer{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px 20px;padding:20px 0 0;margin-top:30px;border-top:1px solid var(--stroke);color:var(--faint);font-size:12.5px}
-.footer-links{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 22px}
+/* ---------------- notices + receipt ---------------- */
+.notice{padding:13px 15px;border-left:3px solid var(--amber-deep);background:var(--tint);color:var(--ink);font-size:12.5px;line-height:1.55;overflow-wrap:anywhere}
+.notice.warning{border-left-color:var(--danger);background:var(--danger-bg);color:var(--danger)}
+.receipt-link{color:var(--forest);font-size:13.5px;font-weight:620;text-underline-offset:3px;overflow-wrap:anywhere}
+:root[data-theme="dark"] .receipt-link{color:var(--amber)}
+.receipt-link-row{display:flex;align-items:baseline;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-top:18px}
+
+/* ---------------- footer ---------------- */
+footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 22px;margin-top:clamp(26px,3vw,40px);padding-top:20px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px}
+.net-label{display:inline-flex;align-items:center;gap:8px}
+.net-label i{width:8px;height:8px;background:var(--amber);flex:none}
+.footer-links{display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px}
 .footer-links a,.link-button{text-decoration:none;color:var(--muted)}
 .link-button{padding:0;border:0;background:none;font-size:inherit}
-.footer-links a:hover,.link-button:hover:not(:disabled){color:var(--amber)}
-.link-button:disabled{color:var(--faint)}
+.footer-links a:hover,.link-button:hover:not(:disabled){color:var(--ink)}
+.link-button:disabled{opacity:.5}
 
-/* ---------- dialog ---------- */
-dialog{max-height:calc(100% - 32px);width:min(440px,calc(100% - 32px));margin:auto;padding:24px;border:1px solid var(--stroke-2);border-radius:14px;background:var(--panel);color:var(--ink)}
-dialog::backdrop{background:#0000 0.72}
-.dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.dialog-heading h2{font-size:20px;font-weight:700;letter-spacing:-.025em}
-.dialog-heading .icon-button{min-height:36px;min-width:36px;padding:4px;font-size:17px}
-dialog p{color:var(--muted);font-size:13px;line-height:1.55;margin:12px 0 16px}
-dialog form button[type="submit"]{margin-top:9px}
-.separator{margin:18px 0;border-top:1px solid var(--stroke)}
-.dialog-status{margin:9px 0;color:var(--amber);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+/* ---------------- dialog ---------------- */
+dialog{width:min(460px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;padding:26px;border:1px solid var(--rule-strong);background:var(--panel);color:var(--ink);box-shadow:0 24px 60px #00000026}
+dialog::backdrop{background:#1c241d99}
+.dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dialog-heading h2{font-size:21px;font-weight:720;letter-spacing:-.02em}
+.dialog-heading .icon-button{min-height:38px;min-width:38px;padding:4px;font-size:17px}
+dialog p{color:var(--muted);font-size:13px;line-height:1.6;margin:12px 0 16px}
+dialog form button[type="submit"]{margin-top:10px}
+.separator{margin:20px 0;border-top:1px solid var(--rule)}
+.dialog-status{margin:10px 0;color:var(--muted);font-size:12.5px;line-height:1.5;overflow-wrap:anywhere}
+.text-link{color:var(--forest);font-size:13px;font-weight:620}
+:root[data-theme="dark"] .text-link{color:var(--amber)}
 
-/* ---------- responsive ---------- */
-@media (max-width:1000px){
-  .grid{grid-template-columns:minmax(0,1fr)}
-  .sidebar{grid-template-columns:minmax(0,1fr)}
-  .intro{margin-bottom:26px}
+/* ---------------- responsive ---------------- */
+@media (max-width:1120px){
+  .layout{grid-template-columns:minmax(140px,168px) minmax(0,1fr);grid-template-areas:"steps main" "aside aside"}
+  .stepper{grid-area:steps}
+  .work-panel{grid-area:main}
+  .aside{grid-area:aside;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  .aside-details{border-top:1px solid var(--rule)}
 }
-@media (max-width:680px){
-  .top-inner{min-height:62px}
-  .brand{font-size:19px;gap:8px;flex:none}
-  .brand img{width:26px;height:26px}
-  .net-label{display:none}
-  .top-inner{gap:8px}
-  .top-actions{gap:8px;flex:0 1 auto;min-width:0}
-  .theme-toggle{width:30px;height:30px;flex:none}
-  .theme-toggle svg{width:14px;height:14px}
-  .mode-control button{min-height:32px;padding-inline:9px;font-size:12px}
-  .workspace{padding-top:30px}
-  .steps{margin-bottom:18px;padding-bottom:16px}
-  .steps li{font-size:11.5px;gap:6px;flex:1 1 auto;min-width:0}
-  .steps li > span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .steps li + li::before{flex:1 1 6px;min-width:4px;width:auto;margin-inline:6px}
-  .step-number{width:19px;height:19px;font-size:10px;flex:none}
-  .work-panel{padding:20px 17px}
-  .wallet-pair{grid-template-columns:minmax(0,1fr)}
-  .arrow-tile{justify-self:start;padding-left:4px}
-  .arrow-tile span{transform:rotate(90deg)}
-  .button{min-height:44px}
-  .mobile-collateral{display:flex;align-items:baseline;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--stroke);color:var(--muted);font-size:12.5px}
-  .mobile-collateral strong{color:var(--ink)}
-  .terms tbody .unit{display:block;margin-top:2px}
-  .approval-wallet{grid-template-columns:auto;gap:3px}
-  .approval-wallet .wallet-status{grid-column:1}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"steps" "main" "aside"}
+  .stepper ol{display:flex}
+  .stepper li{flex:1 1 0;min-height:52px;border-bottom:2px solid var(--rule);border-top:0;padding:0 10px;justify-content:center;font-size:12.5px;gap:8px}
+  .stepper li:first-child{border-top:0}
+  .stepper li.current{border-left:0;border-bottom-color:var(--forest);padding-left:10px;background:transparent}
+  .aside{grid-template-columns:minmax(0,1fr)}
+  .route-ends{flex-direction:column;gap:14px}
+  .route-right{text-align:left}
+  .compare-head,.compare-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .compare-head span:first-child{display:none}
+  .compare-head span:nth-child(2){grid-column:1}
+  .compare-row > span:first-child{grid-column:1/-1;padding:14px 0 0;font-size:12.5px}
+  .compare-row > span{padding:15px 8px}
+  .compare-row > span:first-child{padding-left:0;font-size:12.5px;margin-bottom:0}
+  .compare-head span:not(:first-child){padding-right:8px}
+}
+@media (max-width:620px){
+  .top-inner{min-height:66px;gap:8px}
+  .brand{font-size:17px;gap:7px;flex:0 0 auto;letter-spacing:-.02em}
+  .brand img{width:25px;height:25px}
+  .top-actions{gap:5px;flex:0 1 auto;min-width:0}
+  .mode-control button{padding:0 7px;min-height:33px;font-size:11.5px}
+  .theme-toggle{width:33px;height:33px;flex:none}
   .actions.between .action-group{flex:1 0 100%;justify-content:flex-start}
+  .work-panel{padding:20px 16px}
+  .field-line{flex-wrap:wrap}
+  .field-line .button{width:100%}
+  .approval-wallet{grid-template-columns:auto}
+  .aside-figure strong{font-size:34px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 </style>
+
 </head>
 <body>
 <a class="skip-link" href="#workspace">Skip to loan transfer</a>
@@ -410,14 +400,14 @@ const app = document.getElementById("app");
    Theme — dark (default) / light / system, persisted, no flash on load.
    The inline <script> in <head> applies the stored value before first paint.
    ========================================================================== */
-const THEME_CYCLE = ["dark", "light", "system"];
+const THEME_CYCLE = ["light", "dark", "system"];
 const THEME_META = {
-  dark:   { label: "Dark",   next: "light",  icon: '<path d="M15 2.7a6.4 6.4 0 0 1 0 10.6 6.4 6.4 0 1 1 0-10.6Z"/>' },
-  light:  { label: "Light",  next: "system", icon: '<circle cx="9" cy="9" r="3.4"/><path d="M9 1v2.1M9 14.9V17M1 9h2.1M14.9 9H17M3.3 3.3l1.5 1.5M13.2 13.2l1.5 1.5M14.7 3.3l-1.5 1.5M4.8 13.2l-1.5 1.5"/>' },
-  system: { label: "System", next: "dark",  icon: '<rect x="1.6" y="2.8" width="15" height="10.2" rx="1.6"/><path d="M6 15.6h6M9 12.9v2.7"/>' }
+  dark:   { label: "Dark",   next: "system",  icon: '<path d="M15 2.7a6.4 6.4 0 0 1 0 10.6 6.4 6.4 0 1 1 0-10.6Z"/>' },
+  light:  { label: "Light",  next: "dark", icon: '<circle cx="9" cy="9" r="3.4"/><path d="M9 1v2.1M9 14.9V17M1 9h2.1M14.9 9H17M3.3 3.3l1.5 1.5M13.2 13.2l1.5 1.5M14.7 3.3l-1.5 1.5M4.8 13.2l-1.5 1.5"/>' },
+  system: { label: "System", next: "light",  icon: '<rect x="1.6" y="2.8" width="15" height="10.2" rx="1.6"/><path d="M6 15.6h6M9 12.9v2.7"/>' }
 };
 function themePref(){
-  try{ return localStorage.getItem("handoff-theme") || "dark"; }catch{ return "dark"; }
+  try{ return localStorage.getItem("handoff-theme") || "light"; }catch{ return "light"; }
 }
 function applyTheme(pref){
   const dark = pref === "dark" || (pref === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -482,8 +472,10 @@ async function previewQuote(src, replacementDebt){
 }
 
 /* ==========================================================================
-   Shell
+   Shell — three-column layout: vertical step rail · work panel · evergreen aside
    ========================================================================== */
+const STEP_LABELS = ["Wallets", "Review", "Receipt"];
+
 function render(){
   const demo = isDemo();
   const locked = state.busy || state.pending;
@@ -491,14 +483,10 @@ function render(){
     <header class="topbar">
       <div class="top-inner">
         <button class="brand" data-action="home" aria-label="Handoff home" ${locked?"disabled":""}>
-          <img src="assets/handoff-icon.png" width="31" height="31" alt="" />
-          <span>handoff<span class="dot">.</span></span>
+          <img src="assets/handoff-icon.png" width="34" height="34" alt="" />
+          <span>Handoff</span>
         </button>
         <div class="top-actions">
-          <span class="net-label"><i aria-hidden="true"></i>Mezo Testnet</span>
-          <button class="theme-toggle" data-action="theme" aria-label="${THEME_META[state.theme].label} theme. Switch to ${THEME_META[THEME_META[state.theme].next].label}." title="${THEME_META[state.theme].label} · click for ${THEME_META[THEME_META[state.theme].next].label}">
-            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${THEME_META[state.theme].icon}</svg>
-          </button>
           ${!demo ? `<button class="button wallet-button" data-action="connect" ${state.busy?"disabled":""}>
             <span class="wallet-indicator ${state.active && state.chain === CONFIG.chainId ? "connected":""}" aria-hidden="true"></span>
             <span>${state.active ? text(short(state.active)) : "Connect wallet"}</span></button>`:""}
@@ -506,89 +494,96 @@ function render(){
             <button data-action="demo" aria-pressed="${demo}" ${locked?"disabled":""}>Demo</button>
             <button data-action="testnet" aria-pressed="${!demo}" ${locked?"disabled":""}>Testnet</button>
           </div>
+          <button class="theme-toggle" data-action="theme" aria-label="${THEME_META[state.theme].label} theme. Switch to ${THEME_META[THEME_META[state.theme].next].label}." title="${THEME_META[state.theme].label} · click for ${THEME_META[THEME_META[state.theme].next].label}">
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${THEME_META[state.theme].icon}</svg>
+          </button>
         </div>
       </div>
     </header>
     <main id="workspace" class="workspace" tabindex="-1">
       <section class="intro" aria-labelledby="page-title">
-        <h1 id="page-title">Move your Mezo loan<span class="dot">.</span></h1>
-        <p>Switch wallets while keeping the same Bitcoin collateral.</p>
+        <h1 id="page-title">Move a Mezo loan</h1>
+        <p>Transfer an existing MUSD loan between wallets you control.</p>
       </section>
-      <ol class="steps" aria-label="Transfer progress">
-        ${["Wallets","Review move","Receipt"].map((name,i)=>`
-          <li class="${i===state.phase?"current":i<state.phase?"complete":""}" ${i===state.phase?'aria-current="step"':""}>
-            <span class="step-number" aria-hidden="true">${i<state.phase?"✓":i+1}</span>
-            <span>${name}</span>
-          </li>`).join("")}
-      </ol>
-      <div class="grid">
+      <div class="layout">
+        <nav class="stepper" aria-label="Progress">
+          <ol>
+            ${STEP_LABELS.map((name,i)=>`
+              <li class="${i===state.phase?"current":i<state.phase?"complete":""}" ${i===state.phase?'aria-current="step"':""}>
+                <span class="step-index" aria-hidden="true">${i<state.phase?"✓":String(i+1).padStart(2,"0")}</span>
+                <span class="step-name">${name}</span>
+              </li>`).join("")}
+          </ol>
+        </nav>
         <section class="work-panel" aria-labelledby="step-title">
           ${state.phase===0?walletView():state.phase===1?reviewView():receiptView()}
         </section>
-        <aside class="sidebar" aria-label="Loan summary">
-          ${loanSummary()}
-          <details class="explainer">
-            <summary>How the move works</summary>
-            <p>Temporary MUSD from Tigris pays off the old loan. The same BTC secures the replacement loan, whose proceeds repay Tigris. Mezo executes all three actions in one transaction.</p>
-          </details>
+        <aside class="aside" aria-label="Loan summary">
+          ${asidePanel()}
         </aside>
       </div>
       <footer>
-        <span>Testnet assets only</span>
+        <span class="net-label"><i aria-hidden="true"></i>Mezo Testnet</span>
         <div class="footer-links">
           ${!demo?`<button class="link-button" data-action="router-settings" ${locked?"disabled":""}>Router settings</button>`:""}
           <a href="https://testnet.mezo.org/feature/borrow" target="_blank" rel="noopener noreferrer">Mezo Borrow <span class="external-arrow" aria-hidden="true"></span></a>
           <a href="https://faucet.test.mezo.org" target="_blank" rel="noopener noreferrer">Get test BTC <span class="external-arrow" aria-hidden="true"></span></a>
-          <a href="${explorer}" target="_blank" rel="noopener noreferrer">Mezo Explorer <span class="external-arrow" aria-hidden="true"></span></a>
+          <a href="https://explorer.test.mezo.org" target="_blank" rel="noopener noreferrer">Mezo Explorer <span class="external-arrow" aria-hidden="true"></span></a>
         </div>
       </footer>
     </main>`;
   document.getElementById("live-status").textContent = state.notice;
 }
 
-function title(heading, sub){
-  return `<div class="step-heading">
+function head(heading, sub){
+  return `<div class="step-head">
     <h2 id="step-title" tabindex="-1">${heading}</h2>
     <p>${sub}</p>
     ${state.notice?`<p class="notice ${state.noticeTone}">${text(state.notice)}</p>`:""}
   </div>`;
 }
 
-function routeWallet(label, address, status){
-  const glyph = label.toLowerCase().startsWith("current") || label.toLowerCase().startsWith("from") ? '<span class="glyph" aria-hidden="true"></span>' : "";
-  return `<div class="route-wallet">
-    <span class="wallet-label">${glyph}${label}</span>
-    <code title="${text(address)}">${text(short(address))}</code>
-    <span class="wallet-status">${status}</span>
-  </div>`;
-}
-
-function walletPair(source, destination, before, after){
-  return `<div class="wallet-route">
-    <div class="wallet-pair">
-      ${routeWallet("Current wallet", source, before)}
-      <div class="arrow-tile" aria-hidden="true"><span>→</span></div>
-      ${routeWallet("New wallet", destination, after)}
+/* ---------------------------------------------------------------- wallet route */
+function walletRoute(from, to, fromNote, toNote){
+  return `<div class="route">
+    <div class="route-line" aria-hidden="true">
+      <span class="route-node route-start"></span>
+      <span class="route-arrow"></span>
+      <span class="route-node route-end"></span>
+    </div>
+    <div class="route-ends">
+      <div>
+        <span class="route-label">Current wallet</span>
+        <code class="route-address">${text(short(from))}</code>
+        <span class="route-note">${fromNote}</span>
+      </div>
+      <div class="route-right">
+        <span class="route-label">Receiving wallet</span>
+        <code class="route-address">${text(short(to))}</code>
+        <span class="route-note">${toNote}</span>
+      </div>
     </div>
     <details class="addresses">
       <summary>Full wallet addresses</summary>
       <dl>
-        <div><dt>Current wallet</dt><dd><code>${text(source)}</code></dd></div>
-        <div><dt>New wallet</dt><dd><code>${text(destination)}</code></dd></div>
+        <div><dt>Current wallet</dt><dd><code>${text(from)}</code></dd></div>
+        <div><dt>Receiving wallet</dt><dd><code>${text(to)}</code></dd></div>
       </dl>
     </details>
   </div>`;
 }
 
+/* ---------------------------------------------------------------- step 1 */
 function walletView(){
   if (isDemo()){
-    return `${title("Choose your wallets","See how a Bitcoin-backed loan moves between two wallets.")}
-      ${walletPair(sampleSource, sampleDestination, "Active MUSD loan", "Ready to receive")}
-      <p class="sample-note"><i aria-hidden="true"></i>Example wallets and balances</p>
-      <div class="actions"><button class="button primary" data-action="demo-review">Review move <span class="forward-arrow" aria-hidden="true"></span></button></div>`;
+    return `${head("Wallets for the move","This demo uses two sample wallets and an existing loan.")}
+      ${walletRoute(sampleSource, sampleDestination, "Active MUSD loan", "No active loan")}
+      <div class="actions">
+        <button class="button primary" data-action="demo-review">Review loan terms <span class="forward-arrow" aria-hidden="true"></span></button>
+      </div>`;
   }
   const wrongNetwork = state.chain && state.chain !== CONFIG.chainId;
-  return `${title("Choose your wallets","Enter the wallet holding the loan, and the wallet that should receive it.")}
+  return `${head("Choose the wallets","Enter the wallet with the loan and the wallet that should receive it.")}
     ${wrongNetwork?'<p class="notice warning">Use the wallet button to switch to Mezo Testnet.</p>':""}
     <form id="wallet-form">
       <div class="field">
@@ -599,59 +594,65 @@ function walletView(){
         </div>
       </div>
       <div class="field">
-        <label for="destination">New wallet</label>
+        <label for="destination">Receiving wallet</label>
         <div class="field-line">
           <input id="destination" name="destination" autocomplete="off" spellcheck="false" placeholder="0x…" value="${text(state.destination)}" required aria-describedby="destination-help" ${state.busy?"readonly":""} />
           <button type="button" class="button secondary" data-action="use-destination" ${state.busy?"disabled":""}>Use connected</button>
         </div>
         <p id="destination-help" class="subtle">Use a wallet you control with no active MUSD loan.</p>
       </div>
-      <div class="actions"><button class="button primary" type="submit" ${state.busy?"disabled":""}>
-        ${state.busy==="quote"?"Looking up loan…":'Find loan and review <span class="forward-arrow" aria-hidden="true"></span>'}</button></div>
+      <div class="actions">
+        <button class="button primary" type="submit" ${state.busy?"disabled":""}>${state.busy==="quote"?"Looking up loan…":'Find loan and review <span class="forward-arrow" aria-hidden="true"></span>'}</button>
+      </div>
     </form>`;
 }
 
-function detailRows(rows){return rows.map(([n,v])=>`<div><dt>${n}</dt><dd>${v}</dd></div>`).join("");}
+/* ---------------------------------------------------------------- step 2 */
+function rows(list){return list.map(([name,val])=>`<div><dt>${name}</dt><dd>${val}</dd></div>`).join("");}
 
 function reviewView(){
   const demo = isDemo();
   const q = demo ? sampleQuote : state.quote;
-  if (!q) {
-    return `${title("Review move","Load a fresh quote to continue.")}
+  if (!q){
+    return `${head("Review loan terms","Load a fresh quote to continue.")}
       <div class="actions between">
-        <button class="button secondary" data-action="back" ${state.busy?"disabled":""}>Edit wallets</button>
+        <button class="button secondary" data-action="back" ${state.busy?"disabled":""}>Back</button>
         <button class="button primary" data-action="refresh-quote" ${state.busy?"disabled":""}>Refresh quote</button>
       </div>`;
   }
   const secs = q.deadline ? Number(q.deadline) - Math.floor(Date.now()/1000) : null;
   const oldDebt = demo ? sampleLoan.debt : q.loanDebt;
-  const oldRate  = demo ? sampleLoan.rate : q.loanRate;
-  const coll     = q.collateral ?? q.loan.collateral;
-  return `${title("Review move", demo ? "Compare the current loan with its replacement." : "Check the replacement debt, interest rate, and fees before signing.")}
-    ${walletPair(demo ? sampleSource : state.source, demo ? sampleDestination : state.destination, "Loan will close", "Replacement will open")}
-    <p class="mobile-collateral">BTC to move <strong>${metric(btc(coll),"BTC")}</strong></p>
-    <table class="terms">
-      <caption class="visually-hidden">Current and replacement loan terms</caption>
-      <thead><tr><td></td><th scope="col">Current</th><th scope="col">Replacement</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">Loan balance</th>
-          <td>${metric(fmt(oldDebt,2),"MUSD")}</td>
-          <td>${metric(fmt(q.newDebt,2),"MUSD")}</td></tr>
-        <tr><th scope="row">Interest rate</th><td>${rate(oldRate)}</td><td>${rate(q.newRate)}</td></tr>
-      </tbody>
-    </table>
-    <section class="quote-details" aria-labelledby="costs-title">
-      <h3 id="costs-title">Payoff and fees</h3>
-      <dl class="data-list">
-        ${detailRows([
-          ["Current loan payoff", metric(fmt(q.payoff,2),"MUSD")],
-          ["Mezo opening fee", demo ? metric(fmt(q.origination,2),"MUSD") : "included in replacement"],
-          ["Estimated Tigris fee", metric(fmt(q.flashFee,2),"MUSD")],
-          ["Estimated change to current wallet", metric(fmt(q.change,4),"MUSD")]
-        ])}
-      </dl>
-      <p class="subtle">Loan balances include Mezo’s ${fmt(CONFIG.gasReserve,0)} MUSD reserve. The current wallet pays the network fee in test BTC.</p>
-    </section>
+  const oldRate = demo ? sampleLoan.rate : q.loanRate;
+  const coll = q.collateral ?? q.loan.collateral;
+  return `${head("Review loan terms","Compare the old loan with its replacement.")}
+    ${walletRoute(demo?sampleSource:state.source, demo?sampleDestination:state.destination, "Loan will close", "Replacement will open")}
+    <div class="compare" role="table" aria-label="Current and replacement loan terms">
+      <div class="compare-head" role="row">
+        <span role="columnheader"></span>
+        <span role="columnheader">Current</span>
+        <span role="columnheader">Replacement</span>
+      </div>
+      <div class="compare-row" role="row">
+        <span role="rowheader">Loan balance</span>
+        <span role="cell">${metric(fmt(oldDebt,4),"MUSD")}</span>
+        <span role="cell">${metric(fmt(q.newDebt,4),"MUSD")}</span>
+      </div>
+      <div class="compare-row" role="row">
+        <span role="rowheader">Interest rate</span>
+        <span role="cell">${rate(oldRate)}</span>
+        <span role="cell">${rate(q.newRate)}</span>
+      </div>
+    </div>
+    <h3 class="section-title">Payoff and fees</h3>
+    <dl class="fee-list">
+      ${rows([
+        ["Current loan payoff", metric(fmt(q.payoff,4),"MUSD")],
+        ["Mezo opening fee", demo ? metric(fmt(q.origination,4),"MUSD") : "included in replacement"],
+        ["Estimated Tigris fee", metric(fmt(q.flashFee,4),"MUSD")],
+        ["Estimated change to current wallet", metric(fmt(q.change,6),"MUSD")]
+      ])}
+    </dl>
+    <p class="subtle footnote">Loan balances include Mezo’s ${fmt(CONFIG.gasReserve,0)} MUSD reserve. The current wallet pays the network fee in test BTC.</p>
     ${demo ? `<div class="actions between">
       <button class="button secondary" data-action="back">Back</button>
       <button class="button primary" data-action="demo-complete">Simulate move <span class="forward-arrow" aria-hidden="true"></span></button>
@@ -659,19 +660,18 @@ function reviewView(){
 }
 
 function reviewApprovals(q, secs){
-  return `<section class="approval-section" aria-labelledby="approvals-title">
-    <div class="approval-head"><h3 id="approvals-title">Wallet signatures</h3>
+  return `<section class="approval-section">
+    <div class="approval-head"><h3 class="section-title">Wallet signatures</h3>
       <span class="quote-age ${secs!==null && secs<=0?"expired":""}">${secs===null?"No expiry":clockLabel(secs)}</span></div>
     ${state.router ? `<div class="approvals">
-      ${approval("New wallet", state.destination, state.destinationSignature, "sign-destination", "Open replacement loan", secs)}
+      ${approval("Receiving wallet", state.destination, state.destinationSignature, "sign-destination", "Open replacement loan", secs)}
       ${approval("Current wallet", state.source, state.sourceSignature, "sign-source", "Close existing loan", secs)}
     </div>` : '<p class="notice warning">Set up the Handoff router before signing.</p>'}
   </section>
   <div class="actions between">
-    <button class="button secondary" data-action="back" ${state.busy?"disabled":""}>Edit wallets</button>
+    <button class="button secondary" data-action="back" ${state.busy?"disabled":""}>Back</button>
     <div class="action-group">
-      <button class="button secondary" data-action="refresh-quote" ${state.busy?"disabled":""}>
-        ${state.busy==="quote"?"Refreshing…":"Refresh quote"}</button>
+      <button class="button secondary" data-action="refresh-quote" ${state.busy?"disabled":""}>${state.busy==="quote"?"Refreshing…":"Refresh quote"}</button>
       ${state.router ? `<button class="button primary" data-action="submit" ${secs>0 && !state.busy && state.sourceSignature && state.destinationSignature ? "" : "disabled"}>
         ${state.busy==="submit"?"Checking with Mezo…":'Move loan <span class="forward-arrow" aria-hidden="true"></span>'}</button>`
         : '<button class="button primary" data-action="router-settings">Set up router <span class="forward-arrow" aria-hidden="true"></span></button>'}
@@ -688,19 +688,20 @@ function approval(label, address, signature, action, purpose, secs){
   const connected = same(state.active, address) && state.chain === CONFIG.chainId;
   return `<div class="approval">
     <div class="approval-wallet">
-      <span class="wallet-label">${label}</span>
-      <code title="${text(address)}">${text(short(address))}</code>
-      <span class="wallet-status">${purpose}${connected?" · Connected":""}</span>
+      <span class="approval-label">${label}</span>
+      <code>${text(short(address))}</code>
+      <span class="approval-note">${purpose}${connected?" · Connected":""}</span>
     </div>
     ${signature ? '<span class="signed"><span aria-hidden="true">✓</span> Signed</span>'
       : `<button class="button secondary" data-action="${action}" aria-label="Sign with ${label.toLowerCase()}" ${state.busy || (secs!==null && secs<=0) ? "disabled":""}>${state.busy===action?"Waiting…":"Sign"}</button>`}
   </div>`;
 }
 
+/* ---------------------------------------------------------------- step 3 */
 function receiptView(){
   const demo = isDemo();
   if (!demo && !state.proof){
-    return `${title(state.pending?"Waiting for Mezo":"Verify the transaction",
+    return `${head(state.pending?"Waiting for Mezo":"Verify the transaction",
       state.pending?"Check back once Mezo confirms the loan move.":"Verify that Mezo recorded both loan changes.")}
       ${state.hash?`<a class="receipt-link" href="${explorer}/tx/${state.hash}" target="_blank" rel="noopener noreferrer">View ${text(short(state.hash))} on Mezo Explorer <span class="external-arrow" aria-hidden="true"></span></a>`:""}
       <div class="actions between">
@@ -713,63 +714,67 @@ function receiptView(){
     payoff: sampleQuote.payoff, flashFee: sampleQuote.flashFee, change: sampleQuote.change,
     collateral: sampleLoan.collateral, newDebt: sampleQuote.newDebt, newRate: sampleQuote.newRate
   } : state.proof;
-  return `${title(demo?"Demo transfer receipt":"Loan transfer confirmed",
+  return `${head(demo?"Demo transfer receipt":"Loan transfer confirmed",
     demo?"Simulated result using the sample wallets.":"Mezo closed the old loan and opened the replacement in one transaction.")}
-    ${walletPair(p.source, p.destination, "Loan closed", "Replacement loan active")}
-    <dl class="data-list receipt-data">
-      ${detailRows([
+    ${walletRoute(p.source, p.destination, "Loan closed", "Replacement loan active")}
+    <dl class="fee-list">
+      ${rows([
         ["Collateral moved", metric(btc(p.collateral),"BTC")],
-        ["Replacement loan", metric(fmt(p.newDebt,2),"MUSD")],
-        ["Old loan payoff", metric(fmt(p.payoff,2),"MUSD")],
-        ["Tigris fee", metric(fmt(p.flashFee,2),"MUSD")],
-        ["Change to current wallet", metric(fmt(p.change,4),"MUSD")]
+        ["Replacement loan", metric(fmt(p.newDebt,4),"MUSD")],
+        ["Old loan payoff", metric(fmt(p.payoff,4),"MUSD")],
+        ["Tigris fee", metric(fmt(p.flashFee,4),"MUSD")],
+        ["Change to current wallet", metric(fmt(p.change,6),"MUSD")]
       ])}
     </dl>
-    ${demo?'<p class="subtle" style="margin-top:12px">Demonstration receipt. No transaction hash, because no chain transaction occurred.</p>'
+    ${demo?'<p class="subtle footnote">Demonstration receipt. No transaction hash, because no chain transaction occurred.</p>'
       :`<div class="receipt-link-row">
       <a class="receipt-link" href="${explorer}/tx/${p.hash}" target="_blank" rel="noopener noreferrer">View verified transaction <span class="external-arrow" aria-hidden="true"></span></a>
       <span class="subtle">Block <code>${p.block.toString()}</code></span>
     </div>`}
     <div class="actions between">
-      <button class="button secondary" data-action="restart" ${state.busy?"disabled":""}>${demo?"Restart demo":"Start a new move"}</button>
-      <button class="button primary" data-action="${demo?"testnet":"share"}" ${state.busy?"disabled":""}>${demo?'Open Testnet <span class="forward-arrow" aria-hidden="true"></span>':"Copy receipt link"}</button>
+      <button class="button secondary" data-action="restart" ${state.busy?"disabled":""}>Restart demo</button>
+      <button class="button primary" data-action="${demo?"testnet":"share"}" ${state.busy?"disabled":""}>Open Testnet <span class="forward-arrow" aria-hidden="true"></span></button>
     </div>`;
 }
 
-function loanSummary(){
+/* ---------------------------------------------------------------- evergreen aside */
+function asidePanel(){
   const demo = isDemo();
   const q = demo ? sampleQuote : state.quote;
   const proof = state.proof;
   const review = Boolean(state.phase === 1 && q);
-  const replacement = Boolean(proof || (demo && state.phase === 2));
+  const done = Boolean(proof || (demo && state.phase === 2));
   const coll = proof?.collateral ?? q?.collateral;
-  const debt = replacement ? (proof ?? q).newDebt : (demo ? sampleLoan.debt : q?.loanDebt);
-  const interest = replacement ? (proof ?? q).newRate : (demo ? sampleLoan.rate : q?.loanRate);
-  const label = replacement ? "Replacement loan" : review ? "Collateral to move" : "Current loan";
-  const chip = demo ? '<span class="chip">Demo</span>' : "";
-  return `<section class="loan-panel" aria-labelledby="position-title">
-    <div class="panel-head"><h2 id="position-title">${label}</h2>${chip}</div>
-    ${coll !== undefined
-      ? `<div class="balance">
-          <div class="coin" aria-hidden="true">₿</div>
-          <div class="meta">
-            <span>Bitcoin collateral</span>
-            <strong>${btc(coll)}<span class="unit">BTC</span></strong>
-          </div>
-        </div>
-        ${review
-          ? `<p class="position-note">The replacement uses the same BTC as collateral.</p>
-             ${!demo && q.blockNumber?`<p class="quote-block">Quote at block <code>${q.blockNumber.toString()}</code></p>`:""}`
-          : `<dl class="loan-data">
-              <div><dt>${replacement?"Replacement debt":"Current debt"}</dt><dd>${fmt(debt,2)}<span class="unit">MUSD</span></dd></div>
-              <div><dt>${replacement?"Replacement rate":"Current interest rate"}</dt><dd>${rate(interest)}</dd></div>
-            </dl>`}`
-      : `<div class="balance"><div class="coin" aria-hidden="true">₿</div>
-           <div class="meta"><span>Bitcoin collateral</span><strong>—<span class="unit">BTC</span></strong></div></div>
-         <p class="position-note">Find a loan to see its collateral, balance, and rate.</p>`}
-  </section>`;
-}
 
+  if (review || done){
+    return `<div class="aside-panel">
+      <h2>${done?"Replacement loan":"Collateral to move"}</h2>
+      <div class="aside-figure"><strong>${coll!==undefined?btc(coll):"—"}</strong><span>BTC</span></div>
+      ${done
+        ? `<dl class="aside-list">
+             <div><dt>Loan balance</dt><dd>${fmt((proof??q).newDebt,4)}<span class="unit">MUSD</span></dd></div>
+             <div><dt>Interest rate</dt><dd>${rate((proof??q).newRate)}</dd></div>
+           </dl>`
+        : `<p class="aside-note">The replacement uses the same BTC as collateral.</p>
+           ${!demo && q.blockNumber?`<p class="aside-meta">Quote at block ${q.blockNumber.toString()}</p>`:""}`}
+      </div>
+      <details class="aside-details"><summary>How collateral moves</summary>
+        <p>No BTC leaves Mezo. The same collateral is released from the old loan and locked into the replacement, inside a single transaction.</p></details>`;
+  }
+  return `<div class="aside-panel">
+      <h2>Current loan</h2>
+      ${coll!==undefined
+        ? `<div class="aside-figure"><strong>${btc(coll)}</strong><span>BTC</span></div>
+           <dl class="aside-list">
+             <div><dt>Loan balance</dt><dd>${fmt(demo?sampleLoan.debt:q.loanDebt,2)}<span class="unit">MUSD</span></dd></div>
+             <div><dt>Interest rate</dt><dd>${rate(demo?sampleLoan.rate:q.loanRate)}</dd></div>
+           </dl>`
+        : `<div class="aside-figure"><strong>—</strong><span>BTC</span></div>
+           <p class="aside-note">Find a loan to see its collateral, balance, and rate.</p>`}
+    </div>
+    <details class="aside-details"><summary>How collateral moves</summary>
+      <p>No BTC leaves Mezo. The same collateral is released from the old loan and locked into the replacement, inside a single transaction.</p></details>`;
+}
 /* ==========================================================================
    Navigation + status
    ========================================================================== */
