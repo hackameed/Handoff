@@ -8,6 +8,21 @@ Built for the [Mezo Buildathon](https://app.akindo.io/wave-hacks/OVOO0gdrVU8379D
 **Live demo:** https://handoff-okv7.vercel.app/
 **Verify the deployment:** https://handoff-okv7.vercel.app/verify.html
 
+### A real loan was moved on Mezo Testnet
+
+```
+0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37
+```
+
+[View on Mezo Explorer →](https://explorer.test.mezo.org/tx/0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37)
+
+Block 16,797,058 · 2,533,448 gas · one transaction. 0.060 BTC of collateral moved
+from `0xFE8F…992B` to `0xea19…d114`: source trove **closed**, destination trove
+**active**, router left holding zero BTC and zero MUSD. The unmodified RPC receipt
+is at [`evidence/tx-receipt.json`](evidence/tx-receipt.json).
+
+Not a simulation. See [Evidence](#evidence-what-is-proven-and-how) for the full breakdown.
+
 ---
 
 ## The problem
@@ -171,13 +186,21 @@ Result from the deployed instance:
 [PASS] test_FlashFeeRounding                # fee maths matches Tigris
 ```
 
-### Why no mined transaction yet
+### What it took to get a mined transaction
 
-A migration needs Wallet A to hold a real loan, which needs **≥ 0.06 test BTC** of collateral at current prices. Mezo's `minNetDebt` is 1,800 MUSD and the minimum collateral ratio is 110%.
+A migration needs Wallet A to hold a real loan. On today's Mezo Testnet that means
+**≥ 0.031 BTC** of collateral just to open a trove (`MIN_NET_DEBT` 2,000 MUSD plus
+200 MUSD gas compensation, at 110% MCR), and **≥ 0.050 BTC** to survive long enough
+to migrate, because the testnet runs in **recovery mode with TCR = 0**.
 
-We measured the floor precisely: at 0.035 BTC a borrower can open a loan but **cannot** complete a migration — the destination trove cannot redraw enough to repay the flash without breaching MCR. See [`evidence/MINIMUM-BALANCE.md`](evidence/MINIMUM-BALANCE.md).
+That second number is the non-obvious one. With no protocol debt in the system, any
+trove below a 150% collateral ratio is immediately redemeemable by anyone. An early
+attempt at 0.04 BTC was closed by redemption in under two minutes. The successful
+run used 0.060 BTC — about 178% ICR — and survived.
 
-The mechanism is not in doubt; the testnet BTC is. `script/MineMigration.s.sol` is written, compiles, and runs the full flow end-to-end the moment a funded wallet exists.
+Measured floors are recorded in [`evidence/MINIMUM-BALANCE.md`](evidence/MINIMUM-BALANCE.md);
+the full account of the successful run is in [`evidence/LIVE-MIGRATION.md`](evidence/LIVE-MIGRATION.md).
+`script/live_migrate.py` reruns it end to end.
 
 ---
 
@@ -225,13 +248,14 @@ evidence/                    deployment record, balance analysis, test output
 ```bash
 curl -L https://foundry.paradigm.xyz | bash && foundryup   # if needed
 make install        # forge install foundry-rs/forge-std
-make test           # 9 fork tests against live Mezo Testnet
+make test           # 14 fork tests against live Mezo Testnet
 make test-deployed  # same suite, driven at the live router
 make demo           # http://localhost:8080  (same page as the live demo)
 make verify         # asserts the deployed bytecode hash
 ```
 
-Verified from a clean clone: `make install && make test` → **9 passed, 0 failed**.
+Verified from a clean clone: `make install && make test` → **14 passed, 0 failed**.
+The browser end-to-end test runs separately: `python3 test/web_submit_test.py`.
 
 Requires [Foundry](https://getfoundry.sh). Solidity 0.8.28, optimiser on, `via_ir` enabled.
 CI (`.github/workflows/test.yml`) runs the same suite and asserts the deployed bytecode
@@ -243,7 +267,9 @@ the `workflow` scope.
 ## Limits — read these
 
 - **Not audited.** Testnet software built for a buildathon.
-- **No mined migration yet.** See above. The nine tests are simulations.
+- **A migration has been mined** (tx `0x70048e7c…fd37`), but only once, with a disposable
+  testnet wallet. The fork suite is still the broader safety net — and it stubs the PriceFeed,
+  because Mezo's oracle uses a precompile anvil cannot emulate.
 - **One loan per wallet.** If the destination already holds an active trove the move is rejected by design.
 - **Recovery Mode risk.** If Mezo enters Recovery Mode, the open path tightens to CCR (150%) and a migration can fail for an otherwise healthy position during a crash.
 - **Pool dependency.** A migration needs the Tigris MUSD/mUSDC pool liquid and unpaused. At time of writing: 201,350 MUSD, 1 bps fee, not paused.
