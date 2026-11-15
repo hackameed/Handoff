@@ -205,11 +205,19 @@ evidence/                    deployment record, balance analysis, test output
 ### Build and test
 
 ```bash
-forge build
-forge test --match-path test/Handoff.t.sol -vv --fork-url https://rpc.test.mezo.org
+curl -L https://foundry.paradigm.xyz | bash && foundryup   # if needed
+make install        # forge install foundry-rs/forge-std
+make test           # 9 fork tests against live Mezo Testnet
+make test-deployed  # same suite, driven at the live router
+make demo           # http://localhost:8080
+make verify         # asserts the deployed bytecode hash
 ```
 
+Verified from a clean clone: `make install && make test` → **9 passed, 0 failed**.
+
 Requires [Foundry](https://getfoundry.sh). Solidity 0.8.28, optimiser on, `via_ir` enabled.
+CI runs the same suite on every push (`.github/workflows/test.yml`) and fails if the
+deployed bytecode hash drifts from the build.
 
 ---
 
