@@ -107,26 +107,40 @@ It reads the live Tigris fee at call time — `poolFeeBps()` returns `1`, and `f
 |---|---|
 | Contract deployed and reading real Mezo state | Live calls to public RPC, above |
 | Deployed bytecode == tested build | Runtime hash equality |
-| Full migration executes correctly | **Simulation** on a fork of live Mezo state |
-| A migration has been mined publicly | **No — not yet** |
+| Full migration executes correctly | 14/14 fork tests, plus **a real mined transaction** |
+| A migration has been mined publicly | **Yes** — see below |
 
-### The nine tests are simulations
+### A real loan was moved on Mezo Testnet
 
-This matters, so it's stated plainly rather than buried:
+```
+0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37
+```
 
-> The nine tests in `test/Handoff.t.sol` are **fork simulations**. They execute the
-> deployed router against a fork of live Mezo Testnet state pinned at a block.
-> They are materially stronger than mocks — real troves, real Tigris pool, real
-> ERC-20 balances — and materially weaker than a confirmed transaction. No
-> migration has yet been mined on public Mezo Testnet.
+https://explorer.test.mezo.org/tx/0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37
+
+One transaction, block 16797058, 2,533,448 gas. 0.060 BTC of collateral moved
+from `0xFE8F…992B` to `0xea19…d114`: the source trove closed, the destination
+trove opened with the same collateral, and the router finished holding zero BTC
+and zero MUSD. The unmodified RPC receipt is committed as
+[`evidence/tx-receipt.json`](evidence/tx-receipt.json) and the full account is in
+[`evidence/LIVE-MIGRATION.md`](evidence/LIVE-MIGRATION.md). Reproduce it with
+`script/live_migrate.py`.
 
 Evidence levels, honestly labelled:
 
 | Level | Status |
 |---|---|
-| Unit tests with mocks | ✗ not relied on |
-| **Fork simulation vs. deployed contract** | **✓ 9/9 passing** |
-| Mined public transaction | ✗ pending testnet funding |
+| Unit tests with mocks | used only for pure helpers |
+| **Fork simulation vs. deployed contract** | **✓ 14/14 passing** |
+| **Mined public transaction** | **✓ tx `0x70048e7c…fd37`** |
+| Browser E2E: two signatures, 452-byte calldata | ✓ `test/web_submit_test.py` |
+
+### What the fork tests are, and are not
+
+> `test/Handoff.t.sol` runs against a fork of live Mezo Testnet state. Real troves,
+> real Tigris pool, real ERC-20 balances — but **the PriceFeed is stubbed**, because
+> Mezo's oracle reads a precompile that anvil cannot emulate. So the fork suite
+> proves the contract logic; the mined transaction above is what proves it on chain.
 
 Run them yourself:
 

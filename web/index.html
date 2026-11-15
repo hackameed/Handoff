@@ -379,6 +379,17 @@ const SEL = {
 /* Demo fixture — sample data, clearly labelled in the UI. */
 const sampleSource = "0x3cFb7d2A1e904c58B3fA6D14e0b7a9C2d8E41Ad2";
 const sampleDestination = "0xEbDd3c17A85f0296bE4a7C1d5F8039e6B2c73364";
+
+/* A real migration, mined on Mezo Testnet. Shown on the sample receipt so the
+   walkthrough is not the only thing a visitor can check — this one has a hash. */
+const liveMigration = {
+  hash: "0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37",
+  from: "0xFE8FE674173C579b4900D38a4c8c6c5B99B1992B",
+  to: "0xea1968d50a9002B40f7bFA114E3C04Ea4BB2d114",
+  collateral: "0.060000",
+  debt: "2,214.21",
+  block: "16,797,058"
+};
 const sampleLoan = { collateral: 100000000000000000n, debt: 2702500000000000000000n, rate: 100n };
 const sampleQuote = {
   loan: sampleLoan,
@@ -753,7 +764,8 @@ function receiptView(){
         ["Change to current wallet", metric(fmt(p.change,4),"MUSD")]
       ])}
     </dl>
-    ${demo?'<p class="subtle" style="margin-top:12px">Demonstration receipt. No transaction hash, because no chain transaction occurred.</p>'
+    ${demo?`<p class="subtle" style="margin-top:12px">Demonstration receipt. These sample wallets are illustrative — no chain transaction occurred for them. A real one, mined on Mezo Testnet, is below.</p>
+    <a class="receipt-link" href="${explorer}/tx/${liveMigration.hash}" target="_blank" rel="noopener noreferrer">Real migration: ${liveMigration.collateral} BTC moved ${text(short(liveMigration.from))} → ${text(short(liveMigration.to))} <span class="external-arrow" aria-hidden="true"></span></a>`
       :`<div class="receipt-link-row">
       <a class="receipt-link" href="${explorer}/tx/${p.hash}" target="_blank" rel="noopener noreferrer">View verified transaction <span class="external-arrow" aria-hidden="true"></span></a>
       <span class="subtle">Block <code>${p.block.toString()}</code></span>

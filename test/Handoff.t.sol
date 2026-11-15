@@ -335,6 +335,133 @@ contract HandoffTest is Test {
     }
 
     /* ---------------------------------------------------------------------- */
+    /*                       Authorization and rollback                       */
+    /* ---------------------------------------------------------------------- */
+
+    uint256 constant TEST_COLLATERAL = 0.1 ether;
+    uint256 constant REPLACEMENT_DRAW = 2200e18;
+
+    function _openSourceLoan() internal {
+        vm.deal(walletA, 1 ether);
+        vm.prank(walletA);
+        IBorrowerOpsPublic(BORROWER_OPS).openTrove{value: TEST_COLLATERAL}(
+            2000e18, address(0), address(0)
+        );
+    }
+
+    function _closeSignature(uint256 deadline) internal view returns (bytes memory) {
+        return _signClose(walletAKey, walletA, address(router), _nonce(walletA), deadline);
+    }
+
+    function _openSignature(uint256 collateral, uint256 deadline)
+        internal
+        view
+        returns (bytes memory)
+    {
+        return _signOpen(
+            walletBKey, collateral, REPLACEMENT_DRAW, walletB,
+            address(router), _nonce(walletB), deadline
+        );
+    }
+
+    function test_Revert_TamperedDrawRollsBackTheSourceCloseAndFlashBorrow() public {
+        _openSourceLoan();
+        uint256 deadline = block.timestamp + 20 minutes;
+        uint256 originalDebt = _debt(walletA);
+        uint256 sourceNonce = _nonce(walletA);
+        uint256 destinationNonce = _nonce(walletB);
+        uint256 poolBalance = IERC20Full(MUSD).balanceOf(POOL);
+        bytes memory closeSig = _closeSignature(deadline);
+        bytes memory openSig = _openSignature(TEST_COLLATERAL, deadline);
+
+        vm.expectRevert();
+        vm.prank(walletA);
+        router.moveLoan(walletB, TEST_COLLATERAL, REPLACEMENT_DRAW + 1e18, deadline, closeSig, openSig);
+
+        assertEq(_status(walletA), 1, "source loan remains active");
+        assertEq(_coll(walletA), TEST_COLLATERAL, "source keeps its BTC");
+        assertEq(_debt(walletA), originalDebt, "source debt is restored");
+        assertEq(_status(walletB), 0, "destination stays empty");
+        assertEq(_nonce(walletA), sourceNonce, "source authorization remains unused");
+        assertEq(_nonce(walletB), destinationNonce, "destination authorization remains unused");
+        assertEq(IERC20Full(MUSD).balanceOf(POOL), poolBalance, "pool keeps its MUSD");
+        assertEq(IERC20Full(MUSD).balanceOf(address(router)), 0, "router keeps no MUSD");
+        assertEq(address(router).balance, 0, "router keeps no BTC");
+
+        vm.prank(walletA);
+        router.moveLoan(walletB, TEST_COLLATERAL, REPLACEMENT_DRAW, deadline, closeSig, openSig);
+        assertEq(_status(walletB), 1, "the same signature authorizes the original draw");
+    }
+
+    function test_Revert_WrongSourceSignerThenAcceptTheCorrectOne() public {
+        _openSourceLoan();
+        uint256 deadline = block.timestamp + 20 minutes;
+        bytes memory wrongClose =
+            _signClose(walletBKey, walletA, address(router), _nonce(walletA), deadline);
+        bytes memory openSig = _openSignature(TEST_COLLATERAL, deadline);
+
+        vm.expectRevert();
+        vm.prank(walletA);
+        router.moveLoan(walletB, TEST_COLLATERAL, REPLACEMENT_DRAW, deadline, wrongClose, openSig);
+        assertEq(_status(walletA), 1, "wrong signer cannot close the source loan");
+        assertEq(_status(walletB), 0, "wrong signer cannot open the destination loan");
+
+        bytes memory closeSig = _closeSignature(deadline);
+        vm.prank(walletA);
+        router.moveLoan(walletB, TEST_COLLATERAL, REPLACEMENT_DRAW, deadline, closeSig, openSig);
+        assertEq(_status(walletB), 1, "identified source signer can authorize the move");
+    }
+
+    function test_Revert_QuotedCollateralDoesNotMatchReleasedCollateral() public {
+        _openSourceLoan();
+        uint256 deadline = block.timestamp + 20 minutes;
+        uint256 quotedCollateral = TEST_COLLATERAL - 1;
+        bytes memory closeSig = _closeSignature(deadline);
+        bytes memory openSig = _openSignature(quotedCollateral, deadline);
+
+        vm.expectRevert(HandoffRouter.BtcMismatch.selector);
+        vm.prank(walletA);
+        router.moveLoan(walletB, quotedCollateral, REPLACEMENT_DRAW, deadline, closeSig, openSig);
+        assertEq(_status(walletA), 1);
+        assertEq(_coll(walletA), TEST_COLLATERAL);
+        assertEq(address(router).balance, 0);
+    }
+
+    function test_Revert_ConsumedSignatureAfterTheSourceOpensAnotherLoan() public {
+        _openSourceLoan();
+        uint256 deadline = block.timestamp + 20 minutes;
+        bytes memory usedClose = _closeSignature(deadline);
+        bytes memory openSig = _openSignature(TEST_COLLATERAL, deadline);
+        vm.prank(walletA);
+        router.moveLoan(walletB, TEST_COLLATERAL, REPLACEMENT_DRAW, deadline, usedClose, openSig);
+
+        _openSourceLoan();
+        uint256 freshWalletKey = 0xCAFE;
+        address freshWallet = vm.addr(freshWalletKey);
+        bytes memory freshOpen = _signOpen(
+            freshWalletKey, TEST_COLLATERAL, REPLACEMENT_DRAW, freshWallet,
+            address(router), _nonce(freshWallet), deadline
+        );
+
+        vm.expectRevert();
+        vm.prank(walletA);
+        router.moveLoan(freshWallet, TEST_COLLATERAL, REPLACEMENT_DRAW, deadline, usedClose, freshOpen);
+        assertEq(_status(walletA), 1, "replayed signature leaves the new source loan active");
+        assertEq(_status(freshWallet), 0, "replayed signature leaves destination empty");
+
+        bytes memory freshClose = _closeSignature(deadline);
+        vm.prank(walletA);
+        router.moveLoan(freshWallet, TEST_COLLATERAL, REPLACEMENT_DRAW, deadline, freshClose, freshOpen);
+        assertEq(_status(freshWallet), 1, "a new signature authorizes the second move");
+    }
+
+    function test_Revert_FlashCallbackFromOutsideThePool() public {
+        vm.expectRevert(HandoffRouter.NotPool.selector);
+        vm.prank(walletB);
+        router.hook(walletA, 1e18, 0, "");
+    }
+
+    /* ---------------------------------------------------------------------- */
     /*                              Unit checks                               */
     /* ---------------------------------------------------------------------- */
 
