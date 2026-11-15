@@ -26,12 +26,12 @@ DeFi — borrowing infrastructure
 
 | Field | Value |
 |---|---|
-| Live app | `<<LIVE_DEMO_URL>>` |
+| Live app | https://handoff-okv7.vercel.app/ |
 | Repository | `https://github.com/hackameed/Handoff` |
 | Demo video | `<<VIDEO_URL>>` |
 | Contract (Mezo Testnet) | `https://explorer.test.mezo.org/address/0x2d2c1B42a75Cf360Ba3A70Bd6ad3a3C619069762` |
 | Deploy transaction | `https://explorer.test.mezo.org/tx/0xd745ce35e5baa0abace396a377eddfd3ca0c83b43de13c45e38d0d8fc7c400bd` |
-| Verification page | `<<LIVE_DEMO_URL>>/verify.html` |
+| Verification page | https://handoff-okv7.vercel.app/verify.html |
 
 ---
 
@@ -134,7 +134,7 @@ Handoff moves a Mezo MUSD loan between wallets in one transaction. A Tigris flas
 
 ## Pre-submit checklist
 
-- [ ] `<<LIVE_DEMO_URL>>` resolves and Demo mode walks to the receipt
+- [x] https://handoff-okv7.vercel.app/ — resolves, Demo mode walks Wallets → Review → Receipt
 - [ ] `https://github.com/hackameed/Handoff` is public and has no `.deploy/` directory
 - [ ] `<<VIDEO_URL>>` plays without login
 - [ ] Explorer link opens the contract

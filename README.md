@@ -5,6 +5,8 @@
 Built for the [Mezo Buildathon](https://app.akindo.io/wave-hacks/OVOO0gdrVU8379D10) · DeFi track · Mezo Testnet
 
 **Repo:** https://github.com/hackameed/Handoff
+**Live demo:** https://handoff-okv7.vercel.app/
+**Verify the deployment:** https://handoff-okv7.vercel.app/verify.html
 
 ---
 
@@ -211,15 +213,16 @@ curl -L https://foundry.paradigm.xyz | bash && foundryup   # if needed
 make install        # forge install foundry-rs/forge-std
 make test           # 9 fork tests against live Mezo Testnet
 make test-deployed  # same suite, driven at the live router
-make demo           # http://localhost:8080
+make demo           # http://localhost:8080  (same page as the live demo)
 make verify         # asserts the deployed bytecode hash
 ```
 
 Verified from a clean clone: `make install && make test` → **9 passed, 0 failed**.
 
 Requires [Foundry](https://getfoundry.sh). Solidity 0.8.28, optimiser on, `via_ir` enabled.
-CI runs the same suite on every push (`.github/workflows/test.yml`) and fails if the
-deployed bytecode hash drifts from the build.
+CI (`.github/workflows/test.yml`) runs the same suite and asserts the deployed bytecode
+hash. Add it through the GitHub web UI — the API token used for the initial push lacked
+the `workflow` scope.
 
 ---
 
