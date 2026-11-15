@@ -1,0 +1,14 @@
+{
+  "tx": "0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37",
+  "source": "0xFE8FE674173C579b4900D38a4c8c6c5B99B1992B",
+  "destination": "0xea1968d50a9002B40f7bFA114E3C04Ea4BB2d114",
+  "dest_coll": "60000000000000000",
+  "dest_debt": "2214213535725771563648",
+  "block": 16797058,
+  "gas_used": 2533448,
+  "price_usd": 65452.36,
+  "source_status_after": 2,
+  "dest_status_after": 1,
+  "explorer": "https://explorer.test.mezo.org/tx/0x70048e7c663d833fb55e6917a918c26406769b97ce7328b7b43075c77c76fd37",
+  "note": "Real migration on Mezo Testnet, 2026-11-15. Router ends with 0 BTC and 0 MUSD."
+}
