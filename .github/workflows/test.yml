@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  fork-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Build
+        run: forge build --sizes
+
+      - name: Fork tests against Mezo Testnet
+        run: |
+          forge test --match-path test/Handoff.t.sol -vv \
+            --fork-url https://rpc.test.mezo.org
+
+      - name: Verify deployed bytecode hash
+        run: |
+          ACTUAL=$(cast keccak $(cast code 0x2d2c1B42a75Cf360Ba3A70Bd6ad3a3C619069762 \
+            --rpc-url https://rpc.test.mezo.org))
+          EXPECTED=0xbaec09e54ddfd78eee5a79e41558d731b12a9ae54717b1627bd07c792624b546
+          echo "actual   $ACTUAL"
+          echo "expected $EXPECTED"
+          test "$ACTUAL" = "$EXPECTED"

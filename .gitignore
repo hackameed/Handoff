@@ -1,8 +1,16 @@
+# Foundry
 cache/
 broadcast/
 out/
-.env
+
+# Dependencies — restored by `forge install` from .gitmodules
 lib/
 
-# disposable testnet deployer
+# Secrets
+.env
+
+# Disposable testnet deployer key. Never commit this.
 .deploy/
+
+# OS
+.DS_Store
